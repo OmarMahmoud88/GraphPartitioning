@@ -15,9 +15,9 @@ import structure.Graph;
  * repeat process
  */
 
-public class HeavyEdgeMatching {
+public class HeavyEdgeMatching extends Matching{
 
-	public static ArrayList<ArrayList<Integer>> coarse(Graph graph) {
+	public ArrayList<ArrayList<Integer>> coarse(Graph graph) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		ArrayList<Integer> unvisitedNodes = new ArrayList<Integer>(

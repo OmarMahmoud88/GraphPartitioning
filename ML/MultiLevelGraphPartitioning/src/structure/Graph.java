@@ -42,25 +42,26 @@ public class Graph {
 			// hdr[2] graph is directed if 11
 			this.nodes = new Node[this.numberOfNodes];
 			this.edges = new Edge[(int) this.numberOfEdges];
-			this.nodesEdgesMap = new HashMap<Tuple<Integer, Integer>, Edge>(
-					(int) this.numberOfEdges);
+			this.nodesEdgesMap = new HashMap<Tuple<Integer, Integer>, Edge>((int) this.numberOfEdges);
 			// read nodes and edges
 			int nodeID = 1;
-			while (true) {
+			int lineCounter = 0;
+			while (lineCounter < this.numberOfNodes) {
 				line = br.readLine();
 				if (line == null)
 					break;
 				storeNodeLine(nodeID, line);
 				nodeID++;
+				lineCounter++;
 			}
 			in.close();
 			// initialize shuffled nodes
 			// this array will be needed for randomization purposes
 			this.shuffeledNodesIDs = new int[this.numberOfNodes];
 			for (int i = 0; i < this.nodes.length; i++) {
-				this.shuffeledNodesIDs[i] = i+1;
+				this.shuffeledNodesIDs[i] = i + 1;
 			}
-			// Store Edges and sort it by weight
+			// sort edges by weight
 			Arrays.sort(this.edges);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -70,14 +71,19 @@ public class Graph {
 	}
 
 	/*
-	 * This Function receives Graph file line and return Integer array with nodes
-	 * IDs
+	 * This Function receives Graph file line and return Integer array with
+	 * nodes IDs
 	 */
 	private int[] translateFileLine(String line) {
-		String[] neighborsString = line.trim().split(" ");
+		String trimmedLine = line.trim();
+		if (trimmedLine.length() == 0) {
+			return new int[0];
+		}
+		String[] neighborsString = trimmedLine.split(" ");
 		int[] neighborsIDs = new int[neighborsString.length];
 		for (int i = 0; i < neighborsIDs.length; i++) {
 			neighborsIDs[i] = Integer.parseInt(neighborsString[i]);
+
 		}
 		return neighborsIDs;
 	}
@@ -96,8 +102,7 @@ public class Graph {
 	protected boolean isEdgeCreated(int sourceID, int destinationID) {
 		int min = Math.min(sourceID, destinationID);
 		int max = Math.max(sourceID, destinationID);
-		return (this.nodesEdgesMap.containsKey(new Tuple<Integer, Integer>(min,
-				max)));
+		return (this.nodesEdgesMap.containsKey(new Tuple<Integer, Integer>(min, max)));
 	}
 
 	/*
@@ -138,13 +143,11 @@ public class Graph {
 				neighborEdge = new Edge(nodeID, nodeNeigborsIDs[i], 1);
 			}
 			edges[i] = neighborEdge;
-			neighborsMap.put(nodeNeigborsIDs[i], new Tuple<Node, Edge>(
-					neighbors[i], edges[i]));
+			neighborsMap.put(nodeNeigborsIDs[i], new Tuple<Node, Edge>(neighbors[i], edges[i]));
 			// Add edge to Graph
 			// make sure each edge is added only once
-			if (nodeID < nodeNeigborsIDs[i]) {
-				this.nodesEdgesMap.put(new Tuple<Integer, Integer>(nodeID,
-						nodeNeigborsIDs[i]), neighborEdge);
+			if (nodeID <= nodeNeigborsIDs[i]) {
+				this.nodesEdgesMap.put(new Tuple<Integer, Integer>(nodeID, nodeNeigborsIDs[i]), neighborEdge);
 				this.edges[this.edgeIndex] = neighborEdge;
 				this.edgeIndex++;
 			}
@@ -165,21 +168,20 @@ public class Graph {
 	public Node getNode(int nodeID) {
 		return this.nodes[nodeID - 1];
 	}
-	
+
 	/*
-	 * This function return n random node ID
-	 * using Durstenfeld's algorithm
+	 * This function return n random node ID using Durstenfeld's algorithm
 	 * Durstenfeld, R. (July 1964). "Algorithm 235: Random permutation
 	 */
-	public int [] getNRandomNodesIDs(int n){
-		int [] randomIDs = new int[n];
-		int index = this.shuffeledNodesIDs.length-1;
+	public int[] getNRandomNodesIDs(int n) {
+		int[] randomIDs = new int[n];
+		int index = this.shuffeledNodesIDs.length - 1;
 		Random rnd = new Random();
 		int randomIndex = -1;
 		int tmp;
 		// for n iteration do
 		// n-1 swaps
-		for (int i = 0; i < n &&index > 0; i++, index--) {
+		for (int i = 0; i < n && index > 0; i++, index--) {
 			// generate random Index
 			randomIndex = rnd.nextInt(index);
 			// swap values
@@ -191,20 +193,19 @@ public class Graph {
 		}
 		return randomIDs;
 	}
-	
+
 	/*
-	 * Developed By Omar Mahmoud 27 July 2016
-	 * Returns HashSet of Nodes IDs
+	 * Developed By Omar Mahmoud 27 July 2016 Returns HashSet of Nodes IDs
 	 * Developed for GGGP algorithm
 	 */
-	public HashSet<Integer> getCopyOfNodesIDs(){
+	public HashSet<Integer> getCopyOfNodesIDs() {
 		HashSet<Integer> nodesIDsHashSet = new HashSet<Integer>(this.numberOfNodes);
 		for (int i = 0; i < this.nodes.length; i++) {
 			nodesIDsHashSet.add(this.nodes[i].getNodeID());
 		}
 		return nodesIDsHashSet;
 	}
-	
+
 	public int getTotalNodesWeights() {
 		int totalWeight = 0;
 		for (int i = 0; i < this.nodes.length; i++) {
@@ -214,15 +215,12 @@ public class Graph {
 	}
 
 	public void printGraph() {
-		for (Map.Entry<Tuple<Integer, Integer>, Edge> entry : this.nodesEdgesMap
-				.entrySet()) {
+		for (Map.Entry<Tuple<Integer, Integer>, Edge> entry : this.nodesEdgesMap.entrySet()) {
 			Tuple<Integer, Integer> key = entry.getKey();
 			Edge value = entry.getValue();
 
-			System.out.println(key.x + "("
-					+ this.getNode(key.x).getNodeWeight() + ") " + key.y + "("
-					+ this.getNode(key.y).getNodeWeight() + ") "
-					+ value.getWeight());
+			System.out.println(key.x + "(" + this.getNode(key.x).getNodeWeight() + ") " + key.y + "("
+					+ this.getNode(key.y).getNodeWeight() + ") " + value.getWeight());
 		}
 	}
 
@@ -257,8 +255,7 @@ public class Graph {
 		return nodesEdgesMap;
 	}
 
-	public void setNodesEdgesMap(
-			HashMap<Tuple<Integer, Integer>, Edge> nodesEdgesMap) {
+	public void setNodesEdgesMap(HashMap<Tuple<Integer, Integer>, Edge> nodesEdgesMap) {
 		this.nodesEdgesMap = nodesEdgesMap;
 	}
 

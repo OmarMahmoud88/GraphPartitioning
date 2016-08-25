@@ -35,10 +35,6 @@ public class KLRefinement {
 	private int numberOfPartitions;
 	private int maxSwaps;
 	private int numberOfSwapsApplied;
-	public int getNumberOfSwapsApplied() {
-		return numberOfSwapsApplied;
-	}
-
 	private int minGainAllowed;
 	private int minPartitionWeight;
 	private int maxPartitionWeight;
@@ -103,6 +99,8 @@ public class KLRefinement {
 	 * nodesEdgesWeight_In_to_Partitions matrix 3- update pairsMap&pairsList
 	 */
 	private void swap(KLPair pairWithMaxGain) {
+		System.out.print("cut gain = " + pairWithMaxGain.getEdgeCutGain());
+		System.out.println(" || balance gain = " + pairWithMaxGain.getBalanceGain());
 		// update partitions
 		int node1ID = pairWithMaxGain.getSourceID();
 		int node2ID = pairWithMaxGain.getDestinationID();
@@ -551,5 +549,9 @@ public class KLRefinement {
 	
 	public ArrayList<Partition> getRefinedPartitions() {
 		return refinedPartitions;
+	}
+	
+	public int getNumberOfSwapsApplied() {
+		return numberOfSwapsApplied;
 	}
 }

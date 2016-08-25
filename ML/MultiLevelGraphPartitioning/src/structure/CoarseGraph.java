@@ -1,6 +1,7 @@
 package structure;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -16,8 +17,7 @@ public class CoarseGraph extends Graph {
 	private HashMap<Integer, Integer> reversedMap;
 	private ArrayList<Edge> edgesList;
 
-	public CoarseGraph(Graph parentGraph,
-			ArrayList<ArrayList<Integer>> nodesTree) {
+	public CoarseGraph(Graph parentGraph, ArrayList<ArrayList<Integer>> nodesTree) {
 		super();
 		this.parentGraph = parentGraph;
 		this.nodesTree = nodesTree;
@@ -44,6 +44,8 @@ public class CoarseGraph extends Graph {
 		for (int i = 0; i < this.edgesList.size(); i++) {
 			this.edges[i] = this.edgesList.get(i);
 		}
+		// Store Edges and sort it by weight
+		Arrays.sort(this.edges);
 	}
 
 	private void storeNode(int curNodeID) {
@@ -67,8 +69,7 @@ public class CoarseGraph extends Graph {
 			if (isNodeCreated(curNeighborsIDs[j])) {
 				neighborNode = this.nodes[curNeighborsIDs[j] - 1];
 			} else {
-				neighborNode = new CoarseNode(curNeighborsIDs[j],
-						this.getNodeWeight(curNeighborsIDs[j]));
+				neighborNode = new CoarseNode(curNeighborsIDs[j], this.getNodeWeight(curNeighborsIDs[j]));
 				this.nodes[curNeighborsIDs[j] - 1] = neighborNode;
 			}
 
@@ -76,19 +77,15 @@ public class CoarseGraph extends Graph {
 			if (isEdgeCreated(curNodeID, curNeighborsIDs[j])) {
 				neighborEdge = getEdge(curNodeID, curNeighborsIDs[j]);
 			} else {
-				neighborEdgeWeight = this.calculateEdgeWeight(curNodeID,
-						curNeighborsIDs[j]);
-				neighborEdge = new CoarseEdge(curNodeID, curNeighborsIDs[j],
-						neighborEdgeWeight);
+				neighborEdgeWeight = this.calculateEdgeWeight(curNodeID, curNeighborsIDs[j]);
+				neighborEdge = new CoarseEdge(curNodeID, curNeighborsIDs[j], neighborEdgeWeight);
 			}
 			neighborsEdges[j] = neighborEdge;
-			neighborsMap.put(curNeighborsIDs[j], new Tuple<Node, Edge>(
-					neighbors[j], neighborsEdges[j]));
+			neighborsMap.put(curNeighborsIDs[j], new Tuple<Node, Edge>(neighbors[j], neighborsEdges[j]));
 			// Add edge to Graph
 			// make sure each edge is added only once
 			if (curNodeID < curNeighborsIDs[j]) {
-				this.nodesEdgesMap.put(new Tuple<Integer, Integer>(curNodeID,
-						curNeighborsIDs[j]), neighborEdge);
+				this.nodesEdgesMap.put(new Tuple<Integer, Integer>(curNodeID, curNeighborsIDs[j]), neighborEdge);
 				this.edgesList.add(neighborEdge);
 			}
 
@@ -100,8 +97,7 @@ public class CoarseGraph extends Graph {
 			currentNode.setNeighborsEdges(edges);
 			currentNode.setNeighborsMap(neighborsMap);
 		} else {
-			currentNode = new CoarseNode(curNodeID, curNodeWeight, neighbors,
-					neighborsEdges, neighborsMap);
+			currentNode = new CoarseNode(curNodeID, curNodeWeight, neighbors, neighborsEdges, neighborsMap);
 			this.nodes[curNodeID - 1] = currentNode;
 		}
 	}
@@ -121,8 +117,7 @@ public class CoarseGraph extends Graph {
 			// get child Node Neighbors
 			childNodeNeighbors = childNode.getNeighbors();
 			for (int j = 0; j < childNodeNeighbors.length; j++) {
-				curNeighbor = this.reversedMap.get(childNodeNeighbors[j]
-						.getNodeID());
+				curNeighbor = this.reversedMap.get(childNodeNeighbors[j].getNodeID());
 				if (curNeighbor != curNodeID) {
 					curNeighbors.add(curNeighbor);
 				}
@@ -152,9 +147,7 @@ public class CoarseGraph extends Graph {
 	}
 
 	private void createReversedMap() {
-		// TODO Auto-generated method stub
-		this.reversedMap = new HashMap<Integer, Integer>(
-				this.parentGraph.numberOfNodes);
+		this.reversedMap = new HashMap<Integer, Integer>(this.parentGraph.numberOfNodes);
 		// fill the reversed map
 		int parentNodeID, childNodeID;
 		for (int i = 0; i < this.nodesTree.size(); i++) {
@@ -166,15 +159,17 @@ public class CoarseGraph extends Graph {
 		}
 	}
 
+	public ArrayList<Integer> getNodeChilds(int nodeID) {
+		return this.nodesTree.get(nodeID - 1);
+	}
+
 	private int calculateEdgeWeight(int sourceID, int destinationID) {
 		int edgeWeight = 0;
 		ArrayList<Integer> sourceNeighbors = this.nodesTree.get(sourceID - 1);
-		ArrayList<Integer> destinationNeighbors = this.nodesTree
-				.get(destinationID - 1);
+		ArrayList<Integer> destinationNeighbors = this.nodesTree.get(destinationID - 1);
 		for (int i = 0; i < sourceNeighbors.size(); i++) {
 			for (int j = 0; j < destinationNeighbors.size(); j++) {
-				Edge innerEdge = this.parentGraph.getEdge(
-						sourceNeighbors.get(i), destinationNeighbors.get(j));
+				Edge innerEdge = this.parentGraph.getEdge(sourceNeighbors.get(i), destinationNeighbors.get(j));
 				if (innerEdge != null) {
 					edgeWeight += innerEdge.getWeight();
 				}
