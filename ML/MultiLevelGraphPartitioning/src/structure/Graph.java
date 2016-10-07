@@ -224,6 +224,32 @@ public class Graph {
 		}
 	}
 
+	public int getOrder() {
+		return numberOfNodes;
+	}
+
+	public long getDegree() {
+		return numberOfEdges;
+	}
+
+	public long[][] getAdjacencyMatrix() {
+		long[][] adjMatrix = new long[this.numberOfNodes][this.numberOfNodes];
+		for (int i = 0; i < this.numberOfNodes - 1; i++) {
+			int node1ID = i+1;
+			for (int j = i+1; j < this.numberOfNodes; j++) {
+				int node2ID = j+1;
+				Edge edge = this.getEdge(node1ID, node2ID);
+				int edgeWeight = 0;
+				if (edge != null) {
+					edgeWeight = edge.getWeight();
+				}
+				adjMatrix[i][j] = edgeWeight;
+				adjMatrix[j][i] = edgeWeight;
+			}
+		}
+		return adjMatrix;
+	}
+
 	/*
 	 * setters & getters
 	 */

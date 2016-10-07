@@ -28,6 +28,13 @@ public class CoarseGraph extends Graph {
 		this.edgesList = new ArrayList<Edge>();
 		// create reversedMap
 		this.createReversedMap();
+//		System.out.println("start");
+//		for (int i = 0; i < nodesTree.size(); i++) {
+//			for (int j = 0; j < nodesTree.get(i).size(); j++) {
+//				System.out.print(nodesTree.get(i).get(j)+",");
+//			}
+//			System.out.println();
+//		}
 
 		// create nodes
 		int curNodeID;
@@ -117,7 +124,9 @@ public class CoarseGraph extends Graph {
 			// get child Node Neighbors
 			childNodeNeighbors = childNode.getNeighbors();
 			for (int j = 0; j < childNodeNeighbors.length; j++) {
-				curNeighbor = this.reversedMap.get(childNodeNeighbors[j].getNodeID());
+				int neighborID = childNodeNeighbors[j].getNodeID();
+				//System.out.println(neighborID);
+				curNeighbor = this.reversedMap.get(neighborID);
 				if (curNeighbor != curNodeID) {
 					curNeighbors.add(curNeighbor);
 				}
@@ -178,6 +187,23 @@ public class CoarseGraph extends Graph {
 		return edgeWeight;
 	}
 
+	public long[][] getAdjacencyMatrix() {
+		long[][] adjMatrix = new long[this.numberOfNodes][this.numberOfNodes];
+		for (int i = 0; i < this.numberOfNodes - 1; i++) {
+			int node1ID = i+1;
+			for (int j = i+1; j < this.numberOfNodes; j++) {
+				int node2ID = j+1;
+				CoarseEdge edge = (CoarseEdge) getEdge(node1ID, node2ID);
+				int edgeWeight = 0;
+				if (edge != null) {
+					edgeWeight = edge.getWeight();
+				}
+				adjMatrix[i][j] = edgeWeight;
+				adjMatrix[j][i] = edgeWeight;
+			}
+		}
+		return adjMatrix;
+	}
 	/*
 	 * Setters & Getters
 	 */

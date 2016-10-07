@@ -27,57 +27,70 @@ public class Main {
 		String[] graphNames = getGraphNames("graphs");
 		// loop all graphs
 		for (int i = 0; i < graphNames.length; i++) {
+			if (!graphNames[i].equals("data")) {
+				continue;
+			}
 			String fileSrc = "graphs/" + graphNames[i] + ".graph";
 			System.out.println(graphNames[i]);
 			Graph x = new Graph(fileSrc);
+			
 
 			// get list of coarsen Class available in coarsening package
 			ArrayList<Class> coarseningClasses = getClasses("bin/coarsening", "coarsening");
 			// loop all coarsening schemes
 			for (int j = 0; j < coarseningClasses.size(); j++) {
-
+				//if(!coarseningClasses.get(j).getName().contains("Gabow")) continue;
 				ArrayList<Graph> graphs = new ArrayList<Graph>();
 				graphs.add(x);
 				Graph last = x;
-				Constructor c = coarseningClasses.get(j).getConstructor();
-				Matching match = (Matching) c.newInstance();
+				Matching match = (Matching) coarseningClasses.get(j).newInstance();
 				System.out.println(match.getSchemeName());
 				while (last.getNumberOfNodes() > 100) {
 					graphs.add(new CoarseGraph(last, match.coarse(last)));
 					last = graphs.get(graphs.size() - 1);
+					//System.out.println("number of nodes = " + last.getNumberOfNodes());
 				}
-				Partitioning gGGP = new GreedyGraphGrowingPartitioning(last, 2, 20, 0);
-				PartitionGroup partsGroup = gGGP.getPartitions(last, 2, 20);
-				System.out.println("edge Cut before refinement = " + partsGroup.getEdgeCut());
-				// KLRefinement kl = new KLRefinement(last, partitions, 10, 0,
-				// (float)
-				// 0.0);
-				NaiiveKLRefinement kl = new NaiiveKLRefinement(last, partsGroup, 10, 0, (float) 0.0);
-				PartitionGroup refinedParts = kl.getRefinedPartitions();
-				// System.out.println("number of swaps = " +
-				// kl.getNumberOfSwapsApplied());
-				// System.out.println("edge Cut after refinement = " +
-				// getEdgeCut(refinedParts, last));
-				int graphIndex = graphs.size() - 1;
-				while (graphIndex > 0) {
-					CoarseGraph curGraph = (CoarseGraph) graphs.get(graphIndex);
-					Graph previousGraph = graphs.get(graphIndex - 1);
-					PartitionGroup uncoarsenPartitions = uncoarsenPartitions(curGraph, previousGraph, refinedParts);
-					// System.out.println("edge Cut before refinement = " +
-					// getEdgeCut(uncoarsenPartitions, previousGraph));
-					// kl = new KLRefinement(previousGraph, uncoarsenPartitions,
-					// 10,
+				ArrayList<Class> partitioningClasses = getClasses("bin/partitioning", "partitioning");
+				for (int k = 0; k < partitioningClasses.size(); k++) {
+					Constructor partConstructor = partitioningClasses.get(k).getConstructor(Graph.class, Integer.TYPE,
+							Integer.TYPE, Float.TYPE);
+					Partitioning gGGP = (Partitioning) partConstructor.newInstance(last, 2, 20, 0);
+					// Partitioning gGGP = new
+					// GreedyGraphGrowingPartitioning(last, 2, 20, 0);
+					PartitionGroup partsGroup = gGGP.getPartitions(last, 2, 20);
+					System.out.println("edge Cut before refinement = " + partsGroup.getEdgeCut());
+					// KLRefinement kl = new KLRefinement(last, partitions, 10,
 					// 0,
-					// (float) 0.0);
-					kl = new NaiiveKLRefinement(previousGraph, uncoarsenPartitions, 10, 0, (float) 0.0);
-					refinedParts = kl.getRefinedPartitions();
+					// (float)
+					// 0.0);
+					NaiiveKLRefinement kl = new NaiiveKLRefinement(last, partsGroup, 10, 0, (float) 0.0);
+					PartitionGroup refinedParts = kl.getRefinedPartitions();
 					// System.out.println("number of swaps = " +
 					// kl.getNumberOfSwapsApplied());
 					// System.out.println("edge Cut after refinement = " +
-					// getEdgeCut(refinedParts, previousGraph));
-					graphIndex--;
+					// getEdgeCut(refinedParts, last));
+					int graphIndex = graphs.size() - 1;
+					while (graphIndex > 0) {
+						CoarseGraph curGraph = (CoarseGraph) graphs.get(graphIndex);
+						Graph previousGraph = graphs.get(graphIndex - 1);
+						PartitionGroup uncoarsenPartitions = uncoarsenPartitions(curGraph, previousGraph, refinedParts);
+						// System.out.println("edge Cut before refinement = " +
+						// getEdgeCut(uncoarsenPartitions, previousGraph));
+						// kl = new KLRefinement(previousGraph,
+						// uncoarsenPartitions,
+						// 10,
+						// 0,
+						// (float) 0.0);
+						kl = new NaiiveKLRefinement(previousGraph, uncoarsenPartitions, 10, 0, (float) 0.0);
+						refinedParts = kl.getRefinedPartitions();
+						// System.out.println("number of swaps = " +
+						// kl.getNumberOfSwapsApplied());
+						// System.out.println("edge Cut after refinement = " +
+						// getEdgeCut(refinedParts, previousGraph));
+						graphIndex--;
+					}
+					System.out.println("edge Cut after refinement = " + refinedParts.getEdgeCut());
 				}
-				System.out.println("edge Cut after refinement = " + refinedParts.getEdgeCut());
 
 			}
 		}
