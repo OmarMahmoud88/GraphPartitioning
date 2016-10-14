@@ -74,9 +74,9 @@ public class NodesMatching {
 	 *
 	 * @return matched pairs
 	 */
-	public Iterable<Tuple> matches() {
+	public Iterable<Tuple<Integer, Integer>> matches() {
 
-		List<Tuple> tuples = new ArrayList<Tuple>(match.length / 2);
+		List<Tuple<Integer, Integer>> tuples = new ArrayList<Tuple<Integer, Integer>>(match.length / 2);
 
 		for (int v = 0; v < match.length; v++) {
 			int w = match[v];

@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import coarsening.Matching;
-import partitioning.GreedyGraphGrowingPartitioning;
 import partitioning.Partitioning;
 import refinement.NaiiveKLRefinement;
 import structure.CoarseGraph;
@@ -27,9 +26,9 @@ public class Main {
 		String[] graphNames = getGraphNames("graphs");
 		// loop all graphs
 		for (int i = 0; i < graphNames.length; i++) {
-			if (!graphNames[i].equals("data")) {
-				continue;
-			}
+//			if (!graphNames[i].equals("3elt")) {
+//				continue;
+//			}
 			String fileSrc = "graphs/" + graphNames[i] + ".graph";
 			System.out.println(graphNames[i]);
 			Graph x = new Graph(fileSrc);
@@ -39,14 +38,14 @@ public class Main {
 			ArrayList<Class> coarseningClasses = getClasses("bin/coarsening", "coarsening");
 			// loop all coarsening schemes
 			for (int j = 0; j < coarseningClasses.size(); j++) {
-				//if(!coarseningClasses.get(j).getName().contains("Gabow")) continue;
+				if(coarseningClasses.get(j).getName().contains("GabowWeightedMatching")) continue;
 				ArrayList<Graph> graphs = new ArrayList<Graph>();
 				graphs.add(x);
 				Graph last = x;
 				Matching match = (Matching) coarseningClasses.get(j).newInstance();
 				System.out.println(match.getSchemeName());
 				while (last.getNumberOfNodes() > 100) {
-					graphs.add(new CoarseGraph(last, match.coarse(last)));
+					graphs.add(new CoarseGraph(last, match.coarse(last, 100)));
 					last = graphs.get(graphs.size() - 1);
 					//System.out.println("number of nodes = " + last.getNumberOfNodes());
 				}

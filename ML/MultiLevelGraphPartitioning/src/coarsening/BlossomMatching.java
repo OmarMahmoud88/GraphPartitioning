@@ -330,7 +330,7 @@ public class BlossomMatching extends Matching {
 	}
 
 	@Override
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph) {
+	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes) {
 		this.graph = graph;
 		this.matching = new NodesMatching(graph.getOrder());
 		this.even = new int[graph.getOrder()];
@@ -356,10 +356,10 @@ public class BlossomMatching extends Matching {
 			unvisitedNodes.add(i + 1);
 		}
 
-		Iterable<Tuple> matches = this.matching.matches();
-		Iterator<Tuple> it = matches.iterator();
+		Iterable<Tuple<Integer, Integer>> matches = this.matching.matches();
+		Iterator<Tuple<Integer, Integer>> it = matches.iterator();
 		while (it.hasNext()) {
-			Tuple match = it.next();
+			Tuple<Integer, Integer> match = it.next();
 			ArrayList<Integer> nodeChilds = new ArrayList<Integer>();
 			nodeChilds.add(match.first()+1);
 			unvisitedNodes.remove(match.first()+1);

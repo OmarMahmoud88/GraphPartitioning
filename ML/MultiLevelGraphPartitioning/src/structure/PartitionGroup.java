@@ -1,5 +1,6 @@
 package structure;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -27,6 +28,23 @@ public class PartitionGroup {
 
 	public int getPartitionNumber() {
 		return partitionNumber;
+	}
+
+	public ArrayList<ArrayList<Integer>> getAllPartitionsNodes() {
+		ArrayList<ArrayList<Integer>> nodesTree = new ArrayList<ArrayList<Integer>>();
+		Iterator<Entry<Integer, Partition>> partsIt = this.partitions.entrySet().iterator();
+		while (partsIt.hasNext()) {
+			Map.Entry<Integer, Partition> tuple = partsIt.next();
+			Partition part = tuple.getValue();
+			Iterator<Integer> it = part.getNodeIDs().iterator();
+			ArrayList<Integer> parentNode = new ArrayList<>(part.getNumberOfNodes());
+			while (it.hasNext()) {
+				int nodeID = it.next();
+				parentNode.add(nodeID);
+			}
+			nodesTree.add(parentNode);
+		}
+		return nodesTree;
 	}
 
 	public int getEdgeCut() {

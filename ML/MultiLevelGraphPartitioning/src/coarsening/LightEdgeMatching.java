@@ -18,7 +18,7 @@ import structure.Graph;
 public class LightEdgeMatching extends Matching {
 
 	@Override
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph) {
+	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		ArrayList<Integer> unvisitedNodes = new ArrayList<Integer>(numberOfNodes);
