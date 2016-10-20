@@ -2,6 +2,7 @@ package structure;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,12 +65,12 @@ public class Graph {
 			// sort edges by weight
 			Arrays.sort(this.edges);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
 
+	
 	/*
 	 * This Function receives Graph file line and return Integer array with
 	 * nodes IDs
@@ -175,7 +176,13 @@ public class Graph {
 	 */
 	public int[] getNRandomNodesIDs(int n) {
 		int[] randomIDs = new int[n];
-		int index = this.shuffeledNodesIDs.length - 1;
+		int index = 0;
+		try {
+			index = this.shuffeledNodesIDs.length - 1;
+		} catch (Exception e) {
+			System.out.println("this.shuffeledNodesIDs.length = " + this.shuffeledNodesIDs.length);
+		}
+		
 		Random rnd = new Random();
 		int randomIndex = -1;
 		int tmp;
@@ -292,4 +299,11 @@ public class Graph {
 	public void setEdges(Edge[] edges) {
 		this.edges = edges;
 	}
+
+	public ArrayList<Integer> getNodeChilds(int nodeID) {
+		ArrayList<Integer> childs = new ArrayList<Integer>(1);
+		childs.add(nodeID);
+		return childs;
+	}
+
 }

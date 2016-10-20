@@ -2,6 +2,7 @@ package structure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -21,7 +22,8 @@ public class PartitionGroup {
 	}
 
 	public void addPartition(Partition part) {
-		this.partitions.put(part.getPartitionID(), part);
+		int partID = part.getPartitionID();
+		this.partitions.put(partID, part);
 		this.partitionNumber++;
 		this.edgeCut = -1;
 	}
@@ -76,5 +78,21 @@ public class PartitionGroup {
 	public Partition getPartition(int partID) {
 		Partition part = this.partitions.get(partID);
 		return part;
+	}
+	
+	public int getNodePartitionID(int nodeID){
+		Iterator<Entry<Integer, Partition>> it = this.partitions.entrySet().iterator();
+		while(it.hasNext()){
+			Entry<Integer, Partition> entry = it.next();
+			Partition part = entry.getValue();
+			if(part.containsNode(nodeID)){
+				return part.getPartitionID();
+			}
+		}
+		return -1;
+	}
+
+	public boolean containsPartition(int curPartID) {
+		return this.partitions.containsKey(curPartID);
 	}
 }

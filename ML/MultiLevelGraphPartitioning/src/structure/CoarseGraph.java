@@ -9,6 +9,7 @@ import java.util.Iterator;
 public class CoarseGraph extends Graph {
 
 	private Graph parentGraph;
+	private ArrayList<ArrayList<Integer>> originalNodesTree;
 	private ArrayList<ArrayList<Integer>> nodesTree;
 	// reversed map
 	// this map point from child node to parent node
@@ -113,7 +114,7 @@ public class CoarseGraph extends Graph {
 		HashSet<Integer> curNeighbors = new HashSet<Integer>();
 		int[] curNeighborsArray;
 		int curNodeIndex = curNodeID - 1;
-		int curNeighbor;
+		int curNeighbor = -1;
 		int childNodeID;
 		Node childNode;
 		Node[] childNodeNeighbors;
@@ -126,7 +127,14 @@ public class CoarseGraph extends Graph {
 			for (int j = 0; j < childNodeNeighbors.length; j++) {
 				int neighborID = childNodeNeighbors[j].getNodeID();
 				//System.out.println(neighborID);
-				curNeighbor = this.reversedMap.get(neighborID);
+				curNeighbor = this.reversedMap.get(neighborID);	
+//				try {
+//					curNeighbor = this.reversedMap.get(neighborID);	
+//				} catch (Exception e) {
+//					// TODO: handle exception
+//					System.out.println("neighborID = " + neighborID);
+//				}
+				
 				if (curNeighbor != curNodeID) {
 					curNeighbors.add(curNeighbor);
 				}
@@ -142,6 +150,14 @@ public class CoarseGraph extends Graph {
 		}
 
 		return curNeighborsArray;
+	}
+
+	public ArrayList<ArrayList<Integer>> getNodesTree() {
+		return nodesTree;
+	}
+
+	public void setNodesTree(ArrayList<ArrayList<Integer>> nodesTree) {
+		this.nodesTree = nodesTree;
 	}
 
 	private int getNodeWeight(int curNodeID) {
@@ -213,6 +229,10 @@ public class CoarseGraph extends Graph {
 
 	public void setParentGraph(Graph parentGraph) {
 		this.parentGraph = parentGraph;
+	}
+
+	public int getParentNodeIDOf(int childNodeID) {
+		return this.reversedMap.get(childNodeID);
 	}
 
 }
