@@ -16,7 +16,7 @@ import structure.Graph;
 public class HeaviestEdgeMatching extends Matching {
 
 	@Override
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes) {
+	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		HashSet<Integer> unvisitedNodes = new HashSet<Integer>(numberOfNodes);
@@ -32,8 +32,10 @@ public class HeaviestEdgeMatching extends Matching {
 		for (int i = allEdges.length - 1; i >= 0; i--) {
 			int sourceID = allEdges[i].getSourceID();
 			int destinationID = allEdges[i].getDestinationID();
+			int pairWeight = graph.getNode(sourceID).getNodeWeight() + graph.getNode(destinationID).getNodeWeight();
 			// check if the source or the destination is visited before
-			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID)) {
+			// check if the pair was matched will exceed max partition weight
+			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID) || pairWeight > maxPartitionWeight) {
 				// do not thing
 				continue;
 			} else {

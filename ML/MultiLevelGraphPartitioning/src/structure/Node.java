@@ -73,6 +73,7 @@ public class Node {
 
 	public void setNeighbors(Node[] neighbors) {
 		this.neighbors = neighbors;
+		this.numberOfNeighbors = neighbors.length;
 	}
 
 	public Edge[] getNeighborsEdges() {

@@ -18,7 +18,7 @@ import structure.Graph;
 public class LightEdgeMatching extends Matching {
 
 	@Override
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes) {
+	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		ArrayList<Integer> unvisitedNodes = new ArrayList<Integer>(numberOfNodes);
@@ -63,9 +63,10 @@ public class LightEdgeMatching extends Matching {
 				lightEdge = edgesBuckets.get(currentNodeID - 1).get(j);
 				sourceNodeID = lightEdge.getSourceID();
 				destNodeID = lightEdge.getDestinationID();
+				int pairWeight = graph.getNode(sourceNodeID).getNodeWeight() + graph.getNode(destNodeID).getNodeWeight();
 				otherNodeID = sourceNodeID + destNodeID - currentNodeID;
 				// check if the other node is visited
-				if (visitedNodes.contains(otherNodeID)) {
+				if (visitedNodes.contains(otherNodeID) || pairWeight > maxPartitionWeight) {
 					lightEdge = null;
 					continue;
 				}

@@ -330,7 +330,7 @@ public class BlossomMatching extends Matching {
 	}
 
 	@Override
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes) {
+	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		this.graph = graph;
 		this.matching = new NodesMatching(graph.getOrder());
 		this.even = new int[graph.getOrder()];

@@ -9,7 +9,6 @@ import java.util.Iterator;
 public class CoarseGraph extends Graph {
 
 	private Graph parentGraph;
-	private ArrayList<ArrayList<Integer>> originalNodesTree;
 	private ArrayList<ArrayList<Integer>> nodesTree;
 	// reversed map
 	// this map point from child node to parent node
@@ -52,6 +51,7 @@ public class CoarseGraph extends Graph {
 		for (int i = 0; i < this.edgesList.size(); i++) {
 			this.edges[i] = this.edgesList.get(i);
 		}
+		this.numberOfEdges = this.edges.length;
 		// Store Edges and sort it by weight
 		Arrays.sort(this.edges);
 	}

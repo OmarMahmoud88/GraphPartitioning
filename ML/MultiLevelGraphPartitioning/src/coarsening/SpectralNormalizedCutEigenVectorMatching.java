@@ -2,8 +2,8 @@ package coarsening;
 
 import java.util.ArrayList;
 
-import partitioning.GreedyGraphGrowingPartitioning;
 import partitioning.Partitioning;
+import partitioning.SpectralPartitioningNormalizedCutEigenVector;
 import structure.Graph;
 import structure.PartitionGroup;
 /*
@@ -11,12 +11,12 @@ import structure.PartitionGroup;
  * after that we use each partition as cluster (matching set) for further enhancement. 
  */
 
-public class GGGPMatching extends Matching {
+public class SpectralNormalizedCutEigenVectorMatching extends Matching {
 
 	@Override
 	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
-		Partitioning gGGP = new GreedyGraphGrowingPartitioning(graph, outputGraphNumOfNodes, 20, (float) 0.1);
-		PartitionGroup partsGroup = gGGP.getPartitions(graph, outputGraphNumOfNodes, 20);
+		Partitioning parting = new SpectralPartitioningNormalizedCutEigenVector(graph, outputGraphNumOfNodes, 20, (float) 0.1);
+		PartitionGroup partsGroup = parting.getPartitions(graph, outputGraphNumOfNodes, 20);
 		return partsGroup.getAllPartitionsNodes();
 	}
 

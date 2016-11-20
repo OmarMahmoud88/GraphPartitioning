@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import coarsening.Matching;
 import partitioning.Partitioning;
-import refinement.NaiiveKLRefinement;
+import refinement.KLRefinement1;
 import structure.CoarseGraph;
 import structure.Graph;
 import structure.Node;
@@ -19,42 +19,60 @@ import uncoarsening.GGGPUncoarsening;
 import uncoarsening.Uncoarsening;
 
 public class Main {
-
+	private static int numberOfPartitions = 2;
+	private static float minPartitionWeight;
+	private static float maxPartitionWeight;
+	private static float weightImbalanceRatio = 0;
 	public static void main(String[] args)
 			throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException,
 			SecurityException, IllegalArgumentException, InvocationTargetException {
-
 		String[] graphNames = getGraphNames("graphs");
 		// loop all graphs
 		for (int i = 0; i < graphNames.length; i++) {
-			// if (!graphNames[i].equals("3elt")) {
-			// continue;
-			// }
+//			if (!graphNames[i].equals("add20")) {
+//				continue;
+//			}
 			String fileSrc = "graphs/" + graphNames[i] + ".graph";
+
+			Graph originalGraph = new Graph(fileSrc);			
 			
-			Graph originalGraph = new Graph(fileSrc);
-			if(originalGraph.getNumberOfNodes() > 5000){
-				continue;
-			}
+//			if (originalGraph.getNumberOfNodes() > 5000) {
+//				continue;
+//			}
 			System.out.println(graphNames[i]);
+			System.out.println("Number of partitions = " + numberOfPartitions);
+			minPartitionWeight = (((float)originalGraph.getTotalNodesWeights()) / numberOfPartitions) * (1 - weightImbalanceRatio);
+			maxPartitionWeight = (((float)originalGraph.getTotalNodesWeights()) / numberOfPartitions) * (1 + weightImbalanceRatio);
+
 			// get list of coarsen Class available in coarsening package
-			ArrayList<Class<Object>> coarseningClasses = getClasses("bin/coarsening", "coarsening");
-			// loop all coarsening schemes
+			ArrayList<Class<Object>> coarseningClasses = getClasses("bin/coarsening", "coarsening"); // loop
+																										// allcoarsening
+																										// schemes
 			for (int j = 0; j < coarseningClasses.size(); j++) {
 				if (coarseningClasses.get(j).getName().contains("GabowWeightedMatching")
-						|| coarseningClasses.get(j).getName().contains("Blossom"))
+						|| coarseningClasses.get(j).getName().contains("Blossom")
+//						|| !coarseningClasses.get(j).getName().contains("coarsening.SpectralGraphCutFiedlerVectorMatching")
+						)
 					continue;
 				ArrayList<Graph> graphs = new ArrayList<Graph>();
 				graphs.add(originalGraph);
 				Graph intermediate = originalGraph;
 				Matching match = (Matching) coarseningClasses.get(j).newInstance();
-				System.out.println(match.getSchemeName());
-				// coarse graph repeatedly till defined threshold
+				System.out.println(match.getSchemeName()); // coarse graph
+															// repeatedly till
+															// defined threshold
 				ArrayList<ArrayList<Integer>> originalNodesTree = null;
-				while (intermediate.getNumberOfNodes() > 100) {
-					ArrayList<ArrayList<Integer>> nodesTree = match.coarse(intermediate, 100);
-					ArrayList<ArrayList<Integer>> mappedNodesTree = new ArrayList<ArrayList<Integer>>(nodesTree.size());
-					// map the nodes tree to the original graph
+				int lastGraphNodesNumber = originalGraph.getNumberOfNodes() + 1;
+				while (intermediate.getNumberOfNodes() > 100 && lastGraphNodesNumber > intermediate.getNumberOfNodes()) {
+					lastGraphNodesNumber = intermediate.getNumberOfNodes();
+					ArrayList<ArrayList<Integer>> nodesTree = match.coarse(intermediate, 100, maxPartitionWeight);
+					ArrayList<ArrayList<Integer>> mappedNodesTree = new ArrayList<ArrayList<Integer>>(nodesTree.size()); // map
+																															// the
+																															// nodestree
+																															// to
+																															// the
+																															// original
+																															// graph
 					if (originalNodesTree == null) {
 						originalNodesTree = nodesTree;
 					} else {
@@ -74,12 +92,13 @@ public class Main {
 				// loop partitioning algorithms
 				ArrayList<Class<Object>> partitioningClasses = getClasses("bin/partitioning", "partitioning");
 				for (int k = 0; k < partitioningClasses.size(); k++) {
+					System.out.println(partitioningClasses.get(k).getName());
 					Constructor<Object> partConstructor = partitioningClasses.get(k).getConstructor(Graph.class,
 							Integer.TYPE, Integer.TYPE, Float.TYPE);
-					Partitioning gGGP = (Partitioning) partConstructor.newInstance(cGraph, 2, 20, 0);
-					PartitionGroup partsGroup = gGGP.getPartitions(cGraph, 2, 20);
+					Partitioning gGGP = (Partitioning) partConstructor.newInstance(cGraph, numberOfPartitions, 20, 0);
+					PartitionGroup partsGroup = gGGP.getPartitions(cGraph, numberOfPartitions, 20);
 					System.out.println("edge Cut before refinement = " + partsGroup.getEdgeCut());
-					NaiiveKLRefinement kl = new NaiiveKLRefinement(cGraph, partsGroup, 10, 0, (float) 0.0);
+					KLRefinement1 kl = new KLRefinement1(cGraph, partsGroup, 50, 0, (float) 0.0);
 					PartitionGroup refinedParts = kl.getRefinedPartitions();
 					// uncoarse Graph
 					Graph curGraph = (CoarseGraph) cGraph;
@@ -89,18 +108,19 @@ public class Main {
 						Graph prevGraph = new CoarseGraph(originalGraph, pG.getAllPartitionsNodes());
 						PartitionGroup uncoarsenPartitions = uncoarsenPartitions((CoarseGraph) curGraph, prevGraph,
 								refinedParts);
-						kl = new NaiiveKLRefinement(prevGraph, uncoarsenPartitions, 10, 0, (float) 0.0);
+						kl = new KLRefinement1(prevGraph, uncoarsenPartitions, 50, 0, (float) 0.0);
 						refinedParts = kl.getRefinedPartitions();
 						curGraph = prevGraph;
 					}
 					PartitionGroup uncoarsenPartitions = uncoarsenPartitions((CoarseGraph) curGraph, originalGraph,
 							refinedParts);
-					kl = new NaiiveKLRefinement(originalGraph, uncoarsenPartitions, 10, 0, (float) 0.0);
+					kl = new KLRefinement1(originalGraph, uncoarsenPartitions, 50, 0, (float) 0.0);
 					refinedParts = kl.getRefinedPartitions();
 					System.out.println("edge Cut after refinement = " + refinedParts.getEdgeCut());
 				}
 
 			}
+
 		}
 	}
 

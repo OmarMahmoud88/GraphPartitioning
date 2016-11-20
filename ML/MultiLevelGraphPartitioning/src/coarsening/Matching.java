@@ -6,7 +6,7 @@ import structure.Graph;
 
 public abstract class Matching {
 	// if outputGraphNumOfNodes == -1 just ignore it
-	public abstract ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes);
+	public abstract ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight);
 	
 	public String getSchemeName(){
 		

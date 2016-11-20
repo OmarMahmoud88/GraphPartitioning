@@ -8,11 +8,13 @@ public class Partition {
 	private Graph graph;
 	private HashSet<Integer> nodeIDs;
 	private int partitionWeight = 0;
-	private int numberOfNodes = 0;;
+	private int numberOfNodes = 0;
+	private HashSet<Integer> borderNodes;
 
 	public Partition(Graph graph, int partitionID) {
 		this.graph = graph;
 		this.partitionID = partitionID;
+		this.borderNodes = new HashSet<Integer> ();
 	}
 
 	public int addNode(int nodeID) {

@@ -9,7 +9,7 @@ import utilities.WeightedMatchLong;
 public class GabowWeightedMatching extends Matching {
 
 	@Override
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes) {
+	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		ArrayList<ArrayList<Integer>> nodesTree = new ArrayList<ArrayList<Integer>>();
 		HashSet<Integer> matchedNodes = new HashSet<Integer>();
 		// create adjacency matrix

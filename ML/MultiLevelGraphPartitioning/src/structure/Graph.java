@@ -17,6 +17,11 @@ public class Graph {
 	protected Node[] nodes;
 	protected Edge[] edges;
 	protected int[] shuffeledNodesIDs;
+	//protected RealMatrix laplacianMatrix;
+	//protected DenseMatrix64F laplacianMatrix;
+	protected double[][] laplacianMatrix;
+	protected double[] vertixWeightDiagonalMatrix;
+	protected double[] vertixDegreeDiagonalMatrix;
 
 	protected HashMap<Tuple<Integer, Integer>, Edge> nodesEdgesMap;
 
@@ -70,7 +75,6 @@ public class Graph {
 
 	}
 
-	
 	/*
 	 * This Function receives Graph file line and return Integer array with
 	 * nodes IDs
@@ -182,7 +186,7 @@ public class Graph {
 		} catch (Exception e) {
 			System.out.println("this.shuffeledNodesIDs.length = " + this.shuffeledNodesIDs.length);
 		}
-		
+
 		Random rnd = new Random();
 		int randomIndex = -1;
 		int tmp;
@@ -242,9 +246,9 @@ public class Graph {
 	public long[][] getAdjacencyMatrix() {
 		long[][] adjMatrix = new long[this.numberOfNodes][this.numberOfNodes];
 		for (int i = 0; i < this.numberOfNodes - 1; i++) {
-			int node1ID = i+1;
-			for (int j = i+1; j < this.numberOfNodes; j++) {
-				int node2ID = j+1;
+			int node1ID = i + 1;
+			for (int j = i + 1; j < this.numberOfNodes; j++) {
+				int node2ID = j + 1;
 				Edge edge = this.getEdge(node1ID, node2ID);
 				int edgeWeight = 0;
 				if (edge != null) {
@@ -300,10 +304,65 @@ public class Graph {
 		this.edges = edges;
 	}
 
+	public double[][] getLaplacianMatrix() {
+		
+		if (this.laplacianMatrix == null) {
+			this.laplacianMatrix = new double[this.numberOfNodes][this.numberOfNodes];
+			for (int i = 0; i < laplacianMatrix.length; i++) {
+				int curNodeID = i + 1;
+				Node curNode = this.getNode(curNodeID);
+				Node[] neighbors = curNode.getNeighbors();
+				// node weighted degree
+				int totalEdgesWeights = 0;
+				for (int j = 0; j < neighbors.length; j++) {
+					int neighborID = neighbors[j].getNodeID();
+					Edge edge = this.getEdge(curNodeID, neighborID);
+					totalEdgesWeights += edge.getWeight();
+					laplacianMatrix[i][neighborID-1]= -edge.getWeight(); 
+				}
+				laplacianMatrix[i][i] = totalEdgesWeights;
+			}
+		}
+		return laplacianMatrix;
+	}
+	
+public double[] getVertixWeightsDiagonalMatrix() {
+		
+		if (this.vertixWeightDiagonalMatrix == null) {
+			this.vertixWeightDiagonalMatrix = new double[this.numberOfNodes];
+			for (int i = 0; i < vertixWeightDiagonalMatrix.length; i++) {
+				int curNodeID = i + 1;
+				Node curNode = this.getNode(curNodeID);
+				vertixWeightDiagonalMatrix[i] = curNode.getNodeWeight();
+			}
+		}
+		return vertixWeightDiagonalMatrix;
+	}
+
 	public ArrayList<Integer> getNodeChilds(int nodeID) {
 		ArrayList<Integer> childs = new ArrayList<Integer>(1);
 		childs.add(nodeID);
 		return childs;
+	}
+
+	public double[] getVertixDegreeDiagonalMatrix() {
+		if (this.vertixDegreeDiagonalMatrix == null) {
+			this.vertixDegreeDiagonalMatrix = new double[this.numberOfNodes];
+			for (int i = 0; i < vertixDegreeDiagonalMatrix.length; i++) {
+				int curNodeID = i + 1;
+				Node curNode = this.getNode(curNodeID);
+				Node[] neighbors = curNode.getNeighbors();
+				// node weighted degree
+				int totalEdgesWeights = 0;
+				for (int j = 0; j < neighbors.length; j++) {
+					int neighborID = neighbors[j].getNodeID();
+					Edge edge = this.getEdge(curNodeID, neighborID);
+					totalEdgesWeights += edge.getWeight(); 
+				}
+				vertixDegreeDiagonalMatrix[i] = totalEdgesWeights;
+			}
+		}
+		return vertixDegreeDiagonalMatrix;
 	}
 
 }

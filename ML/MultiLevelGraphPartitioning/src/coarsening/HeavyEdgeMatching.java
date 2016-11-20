@@ -17,7 +17,7 @@ import structure.Graph;
 
 public class HeavyEdgeMatching extends Matching{
 
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes) {
+	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		ArrayList<Integer> unvisitedNodes = new ArrayList<Integer>(
@@ -31,7 +31,6 @@ public class HeavyEdgeMatching extends Matching{
 		// Store Edges sorted in buckets
 		ArrayList<ArrayList<Edge>> edgesBuckets = new ArrayList<ArrayList<Edge>>(
 				numberOfNodes);
-		//System.out.println(numberOfNodes);
 		for (int i = 0; i < numberOfNodes; i++) {
 			edgesBuckets.add(new ArrayList<Edge>());
 		}
@@ -39,7 +38,6 @@ public class HeavyEdgeMatching extends Matching{
 		for (int i = 0; i < allEdges.length; i++) {
 			int sourceID = allEdges[i].getSourceID();
 			int destinationID = allEdges[i].getDestinationID();
-			//System.out.println(sourceID);
 			edgesBuckets.get(sourceID - 1).add(allEdges[i]);
 			edgesBuckets.get(destinationID - 1).add(allEdges[i]);
 		}
@@ -61,13 +59,14 @@ public class HeavyEdgeMatching extends Matching{
 			// get heaviest edge to unvisited node
 			// if none exist collapse the node by itself
 			// and mark it as visited
-			for (int j = edgesBuckets.get(currentNodeID - 1).size() - 1; j > +0; j--) {
+			for (int j = edgesBuckets.get(currentNodeID - 1).size() - 1; j >= 0; j--) {
 				heavyEdge = edgesBuckets.get(currentNodeID - 1).get(j);
 				sourceNodeID = heavyEdge.getSourceID();
 				destNodeID = heavyEdge.getDestinationID();
+				int pairWeight = graph.getNode(sourceNodeID).getNodeWeight() + graph.getNode(destNodeID).getNodeWeight();
 				otherNodeID = sourceNodeID + destNodeID - currentNodeID;
 				// check if the other node is visited
-				if (visitedNodes.contains(otherNodeID)) {
+				if (visitedNodes.contains(otherNodeID) || pairWeight > maxPartitionWeight) {
 					heavyEdge = null;
 					continue;
 				}
