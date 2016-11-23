@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import org.apache.commons.math3.analysis.solvers.AllowedSolution;
-
 import structure.Edge;
 import structure.Graph;
 

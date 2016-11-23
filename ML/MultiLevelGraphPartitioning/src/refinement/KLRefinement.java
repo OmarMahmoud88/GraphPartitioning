@@ -123,7 +123,7 @@ public class KLRefinement {
 
 		// update pairs
 		// the current pair edgeCut gain and balance gain has changed *-1
-		int balanceGain = pairWithMaxGain.getBalanceGain();
+		float balanceGain = pairWithMaxGain.getBalanceGain();
 		int edgeCutGain = pairWithMaxGain.getEdgeCutGain();
 		pairWithMaxGain.setBalanceGain(-1 * balanceGain);
 		pairWithMaxGain.setEdgeCutGain(-1 * edgeCutGain);

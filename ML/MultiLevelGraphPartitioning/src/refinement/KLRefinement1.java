@@ -87,11 +87,16 @@ public class KLRefinement1 {
 
 		// terminate if max swaps reached
 		while (this.numberOfSwapsApplied < this.maxSwaps) {
+//			System.out.println("number of swaps applied = " + this.numberOfSwapsApplied);
+//			System.out.println("current Edge Cut = " + this.refinedPartitions.getEdgeCut());
 			pairWithMaxGain = this.getPairWithMaxGain();
 			if (pairWithMaxGain == null) {
 				// no more swaps allowed found
+//				System.out.println("could not find any pairs.");
+//				System.out.println("--------------------------");
 				break;
 			}
+//			System.out.println("(" + pairWithMaxGain.getSourceID() + ","+pairWithMaxGain.getDestinationID()+")"+"("+pairWithMaxGain.getEdgeCutGain()+","+pairWithMaxGain.getEdgeCutGain()+")");
 			this.swap(pairWithMaxGain);
 			this.numberOfSwapsApplied++;
 		}

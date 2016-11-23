@@ -1,13 +1,14 @@
 package structure;
 
 public class KLPair implements Comparable<KLPair> {
-	private int sourceID, destinationID, edgeCutGain, balanceGain;
+	private int sourceID, destinationID, edgeCutGain;
+	private float balanceGain;
 
 	/*
 	 * Constructors
 	 */
 	public KLPair(int sourceID, int destinationID, int edgeCutGain,
-			int balanceGain) {
+			float balanceGain) {
 		this.sourceID = sourceID;
 		this.destinationID = destinationID;
 		this.edgeCutGain = edgeCutGain;
@@ -22,7 +23,7 @@ public class KLPair implements Comparable<KLPair> {
 	public int compareTo(KLPair arg0) {
 		int result = this.edgeCutGain - arg0.edgeCutGain;
 		if (result == 0) {
-			result = this.balanceGain - arg0.balanceGain;
+			result = (int) Math.ceil(this.balanceGain - arg0.balanceGain);
 		}
 		return result;
 	}
@@ -46,11 +47,11 @@ public class KLPair implements Comparable<KLPair> {
 		this.edgeCutGain = edgeCutGain;
 	}
 
-	public int getBalanceGain() {
+	public float getBalanceGain() {
 		return balanceGain;
 	}
 
-	public void setBalanceGain(int balanceGain) {
+	public void setBalanceGain(float balanceGain) {
 		this.balanceGain = balanceGain;
 	}
 }

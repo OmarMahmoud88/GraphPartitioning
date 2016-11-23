@@ -2,7 +2,6 @@ package structure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -19,6 +18,20 @@ public class PartitionGroup {
 		this.partitions = new HashMap<Integer, Partition>();
 		this.partitionNumber = 0;
 		this.edgeCut = -1;
+	}
+	
+	public PartitionGroup(PartitionGroup partsGroup) {
+		this.graph = partsGroup.graph;
+		this.partitions = new HashMap<Integer, Partition>();
+		this.edgeCut = -1;
+		ArrayList<ArrayList<Integer>> partsNodes = partsGroup.getAllPartitionsNodes();
+		for (int i = 0; i < partsNodes.size(); i++) {
+			Partition part = new Partition(this.graph, i+1);
+			for (int j = 0; j < partsNodes.get(i).size(); j++) {
+				part.addNode(partsNodes.get(i).get(j));
+			}
+			this.addPartition(part);
+		}
 	}
 
 	public void addPartition(Partition part) {
@@ -73,6 +86,24 @@ public class PartitionGroup {
 			edgeCut = this.edgeCut;
 		}
 		return edgeCut;
+	}
+	
+	public float getPartitionImbalance(){
+		int partWeight = (int) Math.ceil(((float)this.graph.getTotalNodesWeights())/this.partitionNumber);
+		int maxPartWeight = partWeight;
+		float imbalance = 0;
+		Iterator<Entry<Integer, Partition>> partsIt = this.partitions.entrySet().iterator();
+		while (partsIt.hasNext()) {
+			Map.Entry<Integer, Partition> tuple = partsIt.next();
+			Partition part = tuple.getValue();
+			int curPartitionWeight = part.getPartitionWeight();
+			if(curPartitionWeight > partWeight){
+				maxPartWeight = curPartitionWeight;
+			}
+		}
+		
+		imbalance = 1 - ((float)maxPartWeight)/partWeight;
+		return imbalance;
 	}
 
 	public Partition getPartition(int partID) {
