@@ -349,9 +349,10 @@ public class KLRefinement2 {
 		float imbalance = 0;
 		if (partitionWeight > this.maxPartitionWeight) {
 			imbalance = ((float)partitionWeight/this.maxPartitionWeight) - 1;
-		} else if (partitionWeight < this.minPartitionWeight) {
-			imbalance = 1 - ((float)partitionWeight/this.minPartitionWeight);
-		}
+		} 
+//		else if (partitionWeight < this.minPartitionWeight) {
+//			imbalance = 1 - ((float)partitionWeight/this.minPartitionWeight);
+//		}
 		return imbalance;
 	}
 

@@ -102,7 +102,7 @@ public class PartitionGroup {
 			}
 		}
 		
-		imbalance = 1 - ((float)maxPartWeight)/partWeight;
+		imbalance = ((float)maxPartWeight)/partWeight;
 		return imbalance;
 	}
 

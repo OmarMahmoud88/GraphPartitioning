@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 import partitioning.GreedyGraphGrowingPartitioning;
 import partitioning.Partitioning;
+import refinement.KLRefinement2;
 import refinement.NaiiveKLRefinement;
 import structure.CoarseGraph;
 import structure.Graph;
@@ -36,8 +37,8 @@ public class GGGPUncoarsening extends Uncoarsening {
 				int numOfTrials = Math.min(10, subGraph.getNumberOfNodes() / 2);
 				Partitioning partAlg = new GreedyGraphGrowingPartitioning(subGraph, 2, numOfTrials, (float) 0.1);
 				PartitionGroup partsGroup = partAlg.getPartitions(subGraph, 2, numOfTrials);
-				NaiiveKLRefinement kl = null;
-				kl = new NaiiveKLRefinement(subGraph, partsGroup, 10, 0, (float) 0.1);
+				KLRefinement2 kl = null;
+				kl = new KLRefinement2(subGraph, partsGroup, 10, 10, -10000, (float) 0.3);
 				PartitionGroup refinedParts = kl.getRefinedPartitions();
 				for (int j = 1; j <= refinedParts.getPartitionNumber(); j++) {
 					Partition origPart = new Partition(originalGraph, orgPartitionID);

@@ -28,14 +28,6 @@ public class CoarseGraph extends Graph {
 		this.edgesList = new ArrayList<Edge>();
 		// create reversedMap
 		this.createReversedMap();
-//		System.out.println("start");
-//		for (int i = 0; i < nodesTree.size(); i++) {
-//			for (int j = 0; j < nodesTree.get(i).size(); j++) {
-//				System.out.print(nodesTree.get(i).get(j)+",");
-//			}
-//			System.out.println();
-//		}
-
 		// create nodes
 		int curNodeID;
 		for (int i = 0; i < this.numberOfNodes; i++) {
