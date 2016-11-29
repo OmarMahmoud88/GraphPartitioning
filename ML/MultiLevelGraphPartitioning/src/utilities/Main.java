@@ -12,7 +12,7 @@ import java.util.Iterator;
 
 import coarsening.Matching;
 import partitioning.Partitioning;
-import refinement.KLRefinement1;
+import refinement.FMRefinement;
 import refinement.KLRefinement2;
 import structure.CoarseGraph;
 import structure.Graph;
@@ -24,22 +24,23 @@ import uncoarsening.Uncoarsening;
 
 public class Main {
 	private static int numberOfPartitions = 2;
-	private static float minPartitionWeight;
-	private static float maxPartitionWeight;
-	private static float weightImbalanceRatio = 0;
+	private static float maxCoarseNodeWeight;
 
 	final private static HashSet<String> coarseningSchemes = new HashSet<String>(
 			Arrays.asList("coarsening.HeavyEdgeMatching"));
 	final private static HashSet<String> partitioningSchemes = new HashSet<String>(
 			Arrays.asList("partitioning.GreedyGraphGrowingPartitioning"));
+//	final private static HashSet<String> excludedGraphs = new HashSet<String>(
+//			Arrays.asList("brack2x", "wing", "m14b", "fe_rotor", "144", "auto", "memplus",
+//					"bcsstk33", "bcsstk31", "598a", "fe_ocean", "fe_tooth", "wave"));
 	final private static HashSet<String> excludedGraphs = new HashSet<String>(
-			Arrays.asList("bcsstk29", "vibrobox", "brack2", "wing", "m14b", "fe_rotor", "144", "auto", "memplus",
-					"bcsstk33", "bcsstk31", "598a", "fe_ocean", "fe_tooth", "wave"));
+			Arrays.asList());
 	final private static int numberOfTrials = 10;
+	final private static int numberOfRuns = 100;
 	final private static float imbalanceRatio = (float) 0.001;
-	final private static int refinementIterations = 10;
+	final private static int refinementIterations = 100;
 	final private static int maxCoarsenGraphNumOfNodes = 100;
-	final private static int maxNegativeRefinementSteps = 10;
+	final private static int maxNegativeRefinementSteps = 20;
 	final private static int maxNegativeRefinementGain = -10000;
 
 	public static void main(String[] args)
@@ -48,9 +49,9 @@ public class Main {
 		String[] graphNames = getGraphNames("../../graphs");
 		// loop all graphs
 		for (int i = 0; i < graphNames.length; i++) {
-			// if (!graphNames[i].equals("fe_tooth")) {
-			// continue;
-			// }
+			if (!graphNames[i].equals("cti")) {
+				continue;
+			}
 			if (excludedGraphs.contains(graphNames[i]))
 				continue;
 			String fileSrc = "../../graphs/" + graphNames[i] + ".graph";
@@ -63,14 +64,12 @@ public class Main {
 			// }
 			System.out.println("Number of partitions = " + numberOfPartitions);
 			System.out.println("imbalanceRatio = " + imbalanceRatio);
-			minPartitionWeight = (((float) originalGraph.getTotalNodesWeights()) / numberOfPartitions)
-					* (1 - weightImbalanceRatio);
-			maxPartitionWeight = (((float) originalGraph.getTotalNodesWeights()) / numberOfPartitions)
-					* (1 + weightImbalanceRatio);
+
+			maxCoarseNodeWeight = (((float) originalGraph.getTotalNodesWeights()) / (numberOfPartitions));
 
 			// multiple Runs
 			int run_ID = 1;
-			while (run_ID <= 20) {
+			while (run_ID <= numberOfRuns) {
 				System.out.println("Run #" + run_ID);
 
 				// get list of coarsen Class available in coarsening package
@@ -95,7 +94,7 @@ public class Main {
 							&& lastGraphNodesNumber - intermediate.getNumberOfNodes() > 10) {
 						lastGraphNodesNumber = intermediate.getNumberOfNodes();
 						ArrayList<ArrayList<Integer>> nodesTree = match.coarse(intermediate, maxCoarsenGraphNumOfNodes,
-								maxPartitionWeight);
+								maxCoarseNodeWeight);
 						// map the nodes tree to the original graph
 						ArrayList<ArrayList<Integer>> mappedNodesTree = new ArrayList<ArrayList<Integer>>(
 								nodesTree.size());
@@ -133,12 +132,17 @@ public class Main {
 						// KLRefinement1 kl1 = new KLRefinement1(cGraph,
 						// partsGroup,
 						// 500, 0, (float) 0.0);
-						KLRefinement2 kl2 = new KLRefinement2(cGraph, partsGroup, refinementIterations,
-								maxNegativeRefinementSteps, maxNegativeRefinementGain, (float) 0.1);
+						// KLRefinement2 kl2 = new KLRefinement2(cGraph,
+						// partsGroup, refinementIterations,
+						// maxNegativeRefinementSteps,
+						// maxNegativeRefinementGain, (float) 0.1);
+						FMRefinement fm = new FMRefinement(cGraph, partsGroup, refinementIterations,
+								maxNegativeRefinementSteps, maxNegativeRefinementGain, imbalanceRatio);
 						// PartitionGroup refinedParts1;
 						PartitionGroup refinedParts2;
 						// refinedParts1 = kl1.getRefinedPartitions();
-						refinedParts2 = kl2.getRefinedPartitions();
+						// refinedParts2 = kl2.getRefinedPartitions();
+						refinedParts2 = fm.getRefinedPartitions();
 						int counter = 2;
 						// uncoarse Graph
 						Graph curGraph = (CoarseGraph) cGraph;
@@ -154,13 +158,18 @@ public class Main {
 									refinedParts2);
 							// kl1 = new KLRefinement1(prevGraph,
 							// uncoarsenPartitions1, 500, 0, (float) 0.0);
-							kl2 = new KLRefinement2(prevGraph, uncoarsenPartitions2, refinementIterations,
-									maxNegativeRefinementSteps, maxNegativeRefinementGain, imbalanceRatio);
+							// kl2 = new KLRefinement2(prevGraph,
+							// uncoarsenPartitions2, refinementIterations,
+							// maxNegativeRefinementSteps,
+							// maxNegativeRefinementGain, imbalanceRatio);
+							fm = new FMRefinement(prevGraph, uncoarsenPartitions2, refinementIterations,
+									maxNegativeRefinementSteps, maxNegativeRefinementGain,  Math.max(((float)0.2/1000), imbalanceRatio));
 							// refinedParts1 = kl1.getRefinedPartitions();
-							refinedParts2 = kl2.getRefinedPartitions();
+							// refinedParts2 = kl2.getRefinedPartitions();
+							refinedParts2 = fm.getRefinedPartitions();
 
 							curGraph = prevGraph;
-							counter *= 2;
+							counter ++;
 						}
 
 						// PartitionGroup uncoarsenPartitions1 =
@@ -172,18 +181,20 @@ public class Main {
 
 						// kl1 = new KLRefinement1(originalGraph,
 						// uncoarsenPartitions1, 500, 0, (float) 0.0);
-						kl2 = new KLRefinement2(originalGraph, uncoarsenPartitions2, 100, 100,
-								maxNegativeRefinementGain, imbalanceRatio);
+						// kl2 = new KLRefinement2(originalGraph,
+						// uncoarsenPartitions2, 1000, 20,
+						// maxNegativeRefinementGain, imbalanceRatio);
+						fm = new FMRefinement(originalGraph, uncoarsenPartitions2, 10000,
+								maxNegativeRefinementSteps, maxNegativeRefinementGain, imbalanceRatio);
 						// refinedParts1 = kl1.getRefinedPartitions();
-						refinedParts2 = kl2.getRefinedPartitions();
+						// refinedParts2 = kl2.getRefinedPartitions();
+						refinedParts2 = fm.getRefinedPartitions();
 						// System.out.println("edge Cut after refinement1 = " +
 						// refinedParts1.getEdgeCut());
 						System.out.println("edge Cut after refinement2 = " + refinedParts2.getEdgeCut());
 						System.out.println(
 								"Partition Imbalance after refinement = " + refinedParts2.getPartitionImbalance());
 						// verify partitions 1
-
-						// Verify Partitions 2
 						boolean verify = true;
 						HashSet<Integer> allNodes = new HashSet<Integer>(originalGraph.getNumberOfNodes());
 						for (int l = 0; l < originalGraph.getNumberOfNodes(); l++) {

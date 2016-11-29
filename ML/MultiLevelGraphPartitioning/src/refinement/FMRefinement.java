@@ -6,11 +6,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import structure.Edge;
 import structure.FMTransfer;
 import structure.FixedSizeHashSet;
 import structure.Graph;
-import structure.KLPair;
 import structure.Node;
 import structure.Partition;
 import structure.PartitionGroup;
@@ -188,6 +186,9 @@ public class FMRefinement {
 			}
 
 			// Transfer Node
+			// System.out.println("Transfer Node " + fmTransfer.nodeID + " to
+			// partition " + fmTransfer.destPartitionID
+			// + " with gain " + fmTransfer.edgeCutGain);
 			this.transferNode(fmTransfer);
 
 		}
@@ -196,6 +197,7 @@ public class FMRefinement {
 	private void transferNode(FMTransfer fmTransfer) {
 		int nodeID = fmTransfer.nodeID;
 		Node curNode = this.graph.getNode(nodeID);
+		Node[] nodeNeighbors = curNode.getNeighbors();
 		int destPartID = fmTransfer.destPartitionID;
 		int curPartID = this.nodePartitionMap.get(nodeID);
 
@@ -211,10 +213,9 @@ public class FMRefinement {
 		if (isBorderNode(curPartID, nodeID)) {
 			// remove from partition 1 border nodes
 			this.borderNodes.get(curPartID - 1).remove(nodeID);
-			this.borderNodes.get(destPartID - 1).remove(nodeID);
+			this.borderNodes.get(destPartID - 1).add(nodeID);
 		}
 		// check first node neighbors
-		Node[] nodeNeighbors = curNode.getNeighbors();
 		for (int i = 0; i < nodeNeighbors.length; i++) {
 			// we have 2 cases
 			// 1- neighbor is in original partition and is not a border node =>
@@ -242,31 +243,149 @@ public class FMRefinement {
 		// update gains nodes map
 		// update node gains
 		for (int i = 0; i < this.refinedPartitions.getPartitionNumber(); i++) {
-			int partID = i+1;
+			int partID = i + 1;
 			Tuple<Integer, Integer> partNode = new Tuple<Integer, Integer>(partID, nodeID);
-			int curEdgeCutGain = this.partNodeGainMap.get(partNode);
 			int newEdgeCutGain = this.getNodeToPartEdgeCutGain(nodeID, partID);
-			if(partID == curPartID){
-				
-			}else if(partID == destPartID){
-				continue;
-			}
-			else{
-				
-			}
-			this.partNodeGainMap.put(partNode, newEdgeCutGain);
-			
-			if(partID == curPartID){
-				// previous partition
-//				this.partNodeGainMap.put(partNode, edgeCutGain);
-			}else if (partID == destPartID) {
-				// current partition
+			if (partID == curPartID) {
+				// add the transfered node gain to the previous partition
+				// check if the gain already exist, if not add new gain bucket
+				if (!this.gainPartNodeMap.containsKey(newEdgeCutGain)) {
+					this.gainPartNodeMap.put(newEdgeCutGain, new HashMap<Integer, HashSet<Integer>>());
+				}
+				HashMap<Integer, HashSet<Integer>> tempPartNodesMap = this.gainPartNodeMap.get(newEdgeCutGain);
+				// check if partition exist in the hash map
+				if (!tempPartNodesMap.containsKey(partID)) {
+					tempPartNodesMap.put(partID, new HashSet<>());
+				}
+
+				HashSet<Integer> nodes = tempPartNodesMap.get(partID);
+				nodes.add(nodeID);
+
+				// add entry in part-node-gain map
+				this.partNodeGainMap.put(partNode, newEdgeCutGain);
+
+				// update max&min edge cut gain
+				this.maxEdgeCutGain = Math.max(this.maxEdgeCutGain, newEdgeCutGain);
+				this.minEdgeCutGain = Math.min(this.minEdgeCutGain, newEdgeCutGain);
+
+			} else if (partID == destPartID) {
+				int prevEdgeCutGain = this.partNodeGainMap.get(partNode);
+				// remove the transfered node gain from the destination
+				// partition
+				HashMap<Integer, HashSet<Integer>> tempPartNodesMap = this.gainPartNodeMap.get(prevEdgeCutGain);
+				// check if partition exist in the hash map
+				if (!tempPartNodesMap.containsKey(partID)) {
+					tempPartNodesMap.put(partID, new HashSet<>());
+				}
+
+				HashSet<Integer> nodes = tempPartNodesMap.get(partID);
+				nodes.remove(nodeID);
+
+				// remove entry from part-node-gain map
 				this.partNodeGainMap.remove(partNode);
+			} else {
+				int prevEdgeCutGain = this.partNodeGainMap.get(partNode);
+				// remove previous gain from maps
+				this.gainPartNodeMap.get(prevEdgeCutGain).get(partID).remove(nodeID);
+				// update the transfered node gain in partition
+				if (!this.gainPartNodeMap.containsKey(newEdgeCutGain)) {
+					this.gainPartNodeMap.put(newEdgeCutGain, new HashMap<Integer, HashSet<Integer>>());
+				}
+				HashMap<Integer, HashSet<Integer>> tempPartNodesMap = this.gainPartNodeMap.get(newEdgeCutGain);
+				// check if partition exist in the hash map
+				if (!tempPartNodesMap.containsKey(partID)) {
+					tempPartNodesMap.put(partID, new HashSet<>());
+				}
+
+				HashSet<Integer> nodes = tempPartNodesMap.get(partID);
+				nodes.add(nodeID);
+
+				// update entry in part-node-gain map
+				this.partNodeGainMap.put(partNode, newEdgeCutGain);
+
+				// update max&min edge cut gain
+				this.maxEdgeCutGain = Math.max(this.maxEdgeCutGain, newEdgeCutGain);
+				this.minEdgeCutGain = Math.min(this.minEdgeCutGain, newEdgeCutGain);
+
+			}
+
+			// update neighbors gains in partition
+			for (int j = 0; j < nodeNeighbors.length; j++) {
+				// check if the neighbor node is a boundary node
+				// if a boundary node, update its gain to the partition
+				// if not check if it has a gain, if yes remove the gain
+				// entries
+				Node neighborNode = nodeNeighbors[j];
+				int neighborID = neighborNode.getNodeID();
+				int neighborPartitionID = this.nodePartitionMap.get(neighborID);
+				// if neighbor is in the same partition, there is no gain to
+				// update
+				if (neighborPartitionID == partID) {
+					continue;
+				}
+				Tuple<Integer, Integer> partNeighbor = new Tuple<Integer, Integer>(partID, neighborID);
+				int newNeighborGain = this.getNodeToPartEdgeCutGain(neighborID, partID);
+				if (this.partNodeGainMap.containsKey(partNeighbor)) {
+					int prevNeighborGain = this.partNodeGainMap.get(partNeighbor);
+					if (this.isBorderNode(neighborPartitionID, neighborID)) {
+						// update neighbor gain to this partition
+						// remove previous gain from maps
+						this.gainPartNodeMap.get(prevNeighborGain).get(partID).remove(neighborID);
+						// update the transfered node gain in partition
+						if (!this.gainPartNodeMap.containsKey(newNeighborGain)) {
+							this.gainPartNodeMap.put(newNeighborGain, new HashMap<Integer, HashSet<Integer>>());
+						}
+						HashMap<Integer, HashSet<Integer>> tempPartNodesMap = this.gainPartNodeMap.get(newNeighborGain);
+						// check if partition exist in the hash map
+						if (!tempPartNodesMap.containsKey(partID)) {
+							tempPartNodesMap.put(partID, new HashSet<>());
+						}
+
+						HashSet<Integer> nodes = tempPartNodesMap.get(partID);
+						nodes.add(neighborID);
+
+						// update entry in part-node-gain map
+						this.partNodeGainMap.put(partNeighbor, newNeighborGain);
+
+						// update max&min edge cut gain
+						this.maxEdgeCutGain = Math.max(this.maxEdgeCutGain, newNeighborGain);
+						this.minEdgeCutGain = Math.min(this.minEdgeCutGain, newNeighborGain);
+
+					} else if (this.partNodeGainMap.containsKey(partNeighbor)) {
+						// remove neighbor gains, as the neighbor was moved from
+						// border
+						this.gainPartNodeMap.get(prevNeighborGain).get(partID).remove(neighborID);
+						this.partNodeGainMap.remove(partNeighbor);
+					}
+				} else {
+					// new border node without gain
+					// record its gain
+					if (this.isBorderNode(neighborPartitionID, neighborID)) {
+						// Add the neighbor node gain in partition
+						if (!this.gainPartNodeMap.containsKey(newNeighborGain)) {
+							this.gainPartNodeMap.put(newNeighborGain, new HashMap<Integer, HashSet<Integer>>());
+						}
+						HashMap<Integer, HashSet<Integer>> tempPartNodesMap = this.gainPartNodeMap.get(newNeighborGain);
+						// check if partition exist in the hash map
+						if (!tempPartNodesMap.containsKey(partID)) {
+							tempPartNodesMap.put(partID, new HashSet<>());
+						}
+
+						HashSet<Integer> nodes = tempPartNodesMap.get(partID);
+						nodes.add(neighborID);
+
+						// update entry in part-node-gain map
+						this.partNodeGainMap.put(partNeighbor, newNeighborGain);
+
+						// update max&min edge cut gain
+						this.maxEdgeCutGain = Math.max(this.maxEdgeCutGain, newNeighborGain);
+						this.minEdgeCutGain = Math.min(this.minEdgeCutGain, newNeighborGain);
+					}
+				}
+
 			}
 		}
-		// update neighbors gains
-		
-		// update nodes gain map
+
 		// lock the node
 		this.lockedNodes.addItem(nodeID);
 	}
@@ -294,7 +413,7 @@ public class FMRefinement {
 
 	private FMTransfer getTransferWithMaxGain() {
 		FMTransfer fmPair = null;
-		for (int i = this.maxEdgeCutGain; i >= Math.max(this.minGainAllowed, this.minEdgeCutGain); i--) {
+		for (int i = this.maxEdgeCutGain; i >= Math.max(this.minGainAllowed, this.minEdgeCutGain) && fmPair == null; i--) {
 			int gain = i;
 			// check if max gain is not allowed
 			if (gain < this.minGainAllowed) {
