@@ -43,7 +43,7 @@ public class FMRefinement {
 		this.maxTransfers = maxSwaps;
 		this.minGainAllowed = minGainAllowed;
 		this.numberOfTransfersApplied = 0;
-		this.lockedNodes = new FixedSizeHashSet<Integer>(64);
+		this.lockedNodes = new FixedSizeHashSet<Integer>(Math.max(16, maxNonPositiveSwaps/2));
 		this.maxNonPositiveSwaps = maxNonPositiveSwaps;
 		this.nonPositiveSwapsApplied = 0;
 		int totalGraphWeight = this.graph.getTotalNodesWeights();
@@ -160,6 +160,7 @@ public class FMRefinement {
 			fmTransfer = this.getTransferWithMaxGain();
 			if (fmTransfer == null) {
 				// no more transfers allowed found
+//				System.out.println("No more Transfers.");
 				break;
 			}
 
@@ -182,7 +183,14 @@ public class FMRefinement {
 				if (this.bestParts == null) {
 					this.bestParts = new PartitionGroup(this.refinedPartitions);
 				}
-
+			}else{
+				// we are converging local minima
+				// or got out of local minima
+				this.minEdgeCut = this.curEdgeCut;
+				this.bestParts = null;
+				this.nonPositiveSwapsApplied = 0;
+				this.lockedNodes.clear();
+				
 			}
 
 			// Transfer Node
@@ -192,6 +200,13 @@ public class FMRefinement {
 			this.transferNode(fmTransfer);
 
 		}
+		
+//		if(this.numberOfTransfersApplied >= this.maxTransfers){
+//			System.out.println("Transfers Allowed Consumed");
+//		}
+//		else if(this.nonPositiveSwapsApplied >= this.maxNonPositiveSwaps){
+//			System.out.println("Negative Transfers Allowed Consumed");
+//		}
 	}
 
 	private void transferNode(FMTransfer fmTransfer) {
@@ -391,7 +406,6 @@ public class FMRefinement {
 	}
 
 	private boolean isBorderNode(int partitionID, int nodeID) {
-		// TODO Auto-generated method stub
 		return this.borderNodes.get(partitionID - 1).contains(nodeID);
 	}
 

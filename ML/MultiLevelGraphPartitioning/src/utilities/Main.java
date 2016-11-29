@@ -40,7 +40,9 @@ public class Main {
 	final private static float imbalanceRatio = (float) 0.001;
 	final private static int refinementIterations = 100;
 	final private static int maxCoarsenGraphNumOfNodes = 100;
-	final private static int maxNegativeRefinementSteps = 20;
+	final private static int maxNegativeRefinementSteps = 100;
+	final private static int finalRefinementIterations = 10000;
+	final private static int maxFinalNegativeRefinementSteps = 200;
 	final private static int maxNegativeRefinementGain = -10000;
 
 	public static void main(String[] args)
@@ -49,7 +51,7 @@ public class Main {
 		String[] graphNames = getGraphNames("../../graphs");
 		// loop all graphs
 		for (int i = 0; i < graphNames.length; i++) {
-			if (!graphNames[i].equals("cti")) {
+			if (!graphNames[i].equals("wing")) {
 				continue;
 			}
 			if (excludedGraphs.contains(graphNames[i]))
@@ -184,8 +186,8 @@ public class Main {
 						// kl2 = new KLRefinement2(originalGraph,
 						// uncoarsenPartitions2, 1000, 20,
 						// maxNegativeRefinementGain, imbalanceRatio);
-						fm = new FMRefinement(originalGraph, uncoarsenPartitions2, 10000,
-								maxNegativeRefinementSteps, maxNegativeRefinementGain, imbalanceRatio);
+						fm = new FMRefinement(originalGraph, uncoarsenPartitions2, finalRefinementIterations,
+								maxFinalNegativeRefinementSteps, maxNegativeRefinementGain, imbalanceRatio);
 						// refinedParts1 = kl1.getRefinedPartitions();
 						// refinedParts2 = kl2.getRefinedPartitions();
 						refinedParts2 = fm.getRefinedPartitions();
