@@ -16,8 +16,6 @@ public abstract class Partitioning {
 		this.imbalanceRatio = imbalanceRatio;
 		int totalNodesWeight = this.graph.getTotalNodesWeights();
 		float exactPartitionWeight = (float) totalNodesWeight / numberOfPartitions;
-		this.maxPartitionWeight = (int) (Math.ceil((double) totalNodesWeight / numberOfPartitions)
-				* (1 + imbalanceRatio));
 		this.maxPartitionWeight = (int) Math.ceil((1 + imbalanceRatio) * Math.ceil(exactPartitionWeight));
 		this.minPartitionWeight = Math.max((int) Math.floor((1 - imbalanceRatio) * Math.floor(exactPartitionWeight)), 1);
 	}

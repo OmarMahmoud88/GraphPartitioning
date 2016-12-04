@@ -126,4 +126,13 @@ public class PartitionGroup {
 	public boolean containsPartition(int curPartID) {
 		return this.partitions.containsKey(curPartID);
 	}
+	
+	public String toString(){
+		StringBuilder parts = new StringBuilder();
+		for (int i = 1; i <= this.graph.getNumberOfNodes(); i++) {
+			parts.append(this.getNodePartitionID(i) + "\r\n");
+		}
+		
+		return parts.toString();
+	}
 }
