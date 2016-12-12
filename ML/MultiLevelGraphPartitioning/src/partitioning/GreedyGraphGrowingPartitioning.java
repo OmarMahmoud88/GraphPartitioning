@@ -13,9 +13,12 @@ import structure.Graph;
 import structure.Node;
 import structure.Partition;
 import structure.PartitionGroup;
+import structure.RandomSet;
 import structure.Tuple;
 
 public class GreedyGraphGrowingPartitioning extends Partitioning {
+
+	private RandomSet<Integer> graphSubset;
 
 	// constructor
 	public GreedyGraphGrowingPartitioning(Graph graph, int numberOfPartitions, int numberOfTrials,
@@ -24,14 +27,15 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 	}
 
 	// return partition group
-	public PartitionGroup getPartitions(Graph gr, int numberOfPartitions, int numberOfTries) {
+	public PartitionGroup getPartitions(Graph gr, RandomSet<Integer> graphSubset, int numberOfPartitions,
+			int numberOfTries) {
 		PartitionGroup bestPartGroup = null;
 		long edgeCut = 0;
 		long minEdgeCut = Long.MAX_VALUE;
 		int partitionsRemained = numberOfPartitions;
 		// Get seeded Nodes for each Trial to avoid
 		// Duplicate seeds
-		int[] randomSeeds = gr.getNRandomNodesIDs(numberOfTries);
+		int[] randomSeeds = gr.getNRandomNodesIDs(numberOfTries, graphSubset);
 		for (int i = 0; i < randomSeeds.length; i++) {
 			// ArrayList<Partition> partitions = new
 			// ArrayList<Partition>(numberOfPartitions);
@@ -39,7 +43,25 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 			int partitionID = 1;
 			partitionsRemained = numberOfPartitions;
 			// Construct Hashset for the graph
-			HashSet<Integer> unselectedNodesIDs = this.graph.getCopyOfNodesIDs();
+			this.graphSubset = graphSubset;
+			HashSet<Integer> unselectedNodesIDs;
+			if (graphSubset != null) {
+				unselectedNodesIDs = new HashSet<Integer>(graphSubset.size());
+				Iterator<Integer> subIt = graphSubset.iterator();
+				int totalNodesWeight = 0;
+				while (subIt.hasNext()) {
+					int subNodeID = subIt.next();
+					unselectedNodesIDs.add(subNodeID);
+					totalNodesWeight += this.graph.getNode(subNodeID).getNodeWeight();
+				}
+				float exactPartitionWeight = (float) totalNodesWeight / numberOfPartitions;
+				this.maxPartitionWeight = (int) Math.ceil((1 + imbalanceRatio) * Math.ceil(exactPartitionWeight));
+				this.minPartitionWeight = Math
+						.max((int) Math.floor((1 - imbalanceRatio) * Math.floor(exactPartitionWeight)), 1);
+			} else {
+				unselectedNodesIDs = this.graph.getCopyOfNodesIDs();
+			}
+
 			// Create first partition from the seeded Node
 			Partition partition = constructPartition(randomSeeds[i], unselectedNodesIDs, partitionID);
 			// Add partition to partitions list
@@ -71,36 +93,11 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 				minEdgeCut = edgeCut;
 				bestPartGroup = partGroup;
 			}
-			// Trial finished
 			numberOfTries--;
 		}
-		// System.out.println(minEdgeCut);
 
 		return bestPartGroup;
 	}
-
-	// /*
-	// * this method takes partition group
-	// * and calculate its edge cut
-	// */
-	// private long getEdgeCut(ArrayList<Partition> partitions) {
-	// long edgeCut = 0;
-	// for (int i = 0; i < partitions.size(); i++) {
-	// Iterator<Integer> it = partitions.get(i).getNodeIDs().iterator();
-	// while (it.hasNext()) {
-	// int nodeID = it.next();
-	// Node curNode = this.graph.getNode(nodeID);
-	// Node[] neighbors = curNode.getNeighbors();
-	// for (int j = 0; j < neighbors.length; j++) {
-	// if (!partitions.get(i).containsNode(neighbors[j].getNodeID())) {
-	// edgeCut += this.graph.getEdge(nodeID,
-	// neighbors[j].getNodeID()).getWeight();
-	// }
-	// }
-	// }
-	// }
-	// return edgeCut / 2;
-	// }
 
 	/*
 	 * Due to the limitation in Java, Random element Cannot be acquired from
@@ -129,8 +126,17 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 		int nextNodeID = seedNodeID;
 		// Create Partition List
 		Partition partition = new Partition(this.graph, partitionID);
-		// Create Frontier Nodes List
-		HashMap<Integer, ArrayList<Tuple<Integer, Integer>>> frontierNodes = new HashMap<Integer, ArrayList<Tuple<Integer, Integer>>>();
+		HashMap<Integer, HashSet<Integer>> frontierToNeighbors = new HashMap<Integer, HashSet<Integer>>(); // frontier
+																											// node
+		// -> neighbors
+		HashMap<Integer, Integer> neighborsGains = new HashMap<Integer, Integer>(); // neighbor
+																					// node
+																					// ->
+																					// gain
+		HashMap<Integer, HashSet<Integer>> neighborToFrontiers = new HashMap<Integer, HashSet<Integer>>(); // neighbor
+																											// node
+		// -> frontier
+		// nodes
 		int partitionWeight = 0;
 		// Add Nodes to partition
 		while (partitionWeight < this.minPartitionWeight && unselectedNodesIDs.size() > 0) {
@@ -146,7 +152,8 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 			unselectedNodesIDs.remove(nextNodeID);
 			// after adding node to partition
 			// the Node will be added to the frontier list
-			nextNodeID = this.addNodeToFrontier(nextNodeID, frontierNodes, unselectedNodesIDs, partition);
+			nextNodeID = this.addNodeToFrontier(nextNodeID, frontierToNeighbors, neighborsGains, neighborToFrontiers,
+					unselectedNodesIDs, partition);
 		}
 
 		return partition;
@@ -159,13 +166,15 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 	 * must be added as a frontier node, if it has unselected neighbors 3- the
 	 * gains of all frontier nodes' neighbors need to be updated
 	 */
-	private int addNodeToFrontier(int nodeID, HashMap<Integer, ArrayList<Tuple<Integer, Integer>>> frontierNodes,
+
+	private int addNodeToFrontier(int nodeID, HashMap<Integer, HashSet<Integer>> frontierToNeighbors,
+			HashMap<Integer, Integer> neighborsGains, HashMap<Integer, HashSet<Integer>> neighborToFrontiers,
 			HashSet<Integer> unselectedNodesIDs, Partition partition) {
 
 		// get the nodes neighbors
 		Node cur = this.graph.getNode(nodeID);
 		Node[] curNeighbors = cur.getNeighbors();
-		ArrayList<Integer> unselectedNeighbors = new ArrayList<Integer>(curNeighbors.length);
+		HashSet<Integer> unselectedNeighbors = new HashSet<Integer>();
 
 		// filter neighbors selected in previous partitions
 		for (int i = 0; i < curNeighbors.length; i++) {
@@ -176,67 +185,170 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 
 		int minGain = Integer.MAX_VALUE;
 		int minGainNodeID = -1;
-		// 1- iterate through all frontier nodes neighbors to upgrade their gain
-		Iterator<Entry<Integer, ArrayList<Tuple<Integer, Integer>>>> it = frontierNodes.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry<Integer, ArrayList<Tuple<Integer, Integer>>> pair = (Map.Entry<Integer, ArrayList<Tuple<Integer, Integer>>>) it
-					.next();
-			ArrayList<Tuple<Integer, Integer>> neighborsGain = (ArrayList<Tuple<Integer, Integer>>) pair.getValue();
-			// loop through neighbors
+		// iterate through all frontier nodes neighbors
+		Iterator<Entry<Integer, Integer>> frontierNeighborsIt = neighborsGains.entrySet().iterator();
+		while (frontierNeighborsIt.hasNext()) {
+			Entry<Integer, Integer> entry = frontierNeighborsIt.next();
+			int neighborID = entry.getKey();
+			int neighborGain = entry.getValue();
+			// check if this neighbor
 			// if it is the new node remove it
 			// if the new node is not a neighbor do nothing
 			// if it is a neighbor, subtract the weight of edge
-			// connecting them from the gain
-			for (int i = 0; i < neighborsGain.size(); i++) {
-				if (neighborsGain.get(i).x == nodeID) {
-					neighborsGain.remove(i);
-					// if neighbors list is empty, remove the parent
-					// node from the frontier
-					if (neighborsGain.size() == 0) {
-						it.remove();
+			if (neighborID == nodeID) {
+				// the neighbor is the new added node
+				// 1- remove from frontier to neighbors map
+				// 2- remove from neighbor To Frontier map
+				// 3- after the while loop remove from neighbors gains map, not
+				// to mess the iterator
+				HashSet<Integer> neighborFrontiers = neighborToFrontiers.get(neighborID);
+				Iterator<Integer> neighborFrontiersIt = neighborFrontiers.iterator();
+				while (neighborFrontiersIt.hasNext()) {
+					int frontierID = neighborFrontiersIt.next();
+					frontierToNeighbors.get(frontierID).remove(neighborID);
+					if (frontierToNeighbors.get(frontierID).size() <= 0) {
+						frontierToNeighbors.remove(frontierID);
 					}
-					i--;
-					continue;
+				}
+				neighborToFrontiers.remove(neighborID);
+			} else {
+
+				Edge edg = this.graph.getEdge(nodeID, neighborID);
+				if (edg == null) {
+					// not a neighbor to the new added node
+					// check its stored gain
+					if (neighborGain < minGain) {
+						minGain = neighborGain;
+						minGainNodeID = neighborID;
+					}
 				} else {
-					int neighborID = neighborsGain.get(i).x;
-					Edge edg = this.graph.getEdge(nodeID, neighborID);
-					if (edg != null) {
-						int gain = neighborsGain.get(i).y - edg.getWeight();
-						Tuple<Integer, Integer> tup = new Tuple<Integer, Integer>(neighborID, gain);
-						neighborsGain.set(i, tup);
-						// store the gain and its index if it was minimum
-						if (gain < minGain) {
-							minGain = gain;
-							minGainNodeID = neighborID;
-						}
-					} else {
-						int gain = neighborsGain.get(i).y;
-						if (gain < minGain) {
-							minGain = gain;
-							minGainNodeID = neighborID;
-						}
+					// is neighbor to the newly added node
+					// update its gain in neighborsGains
+					neighborGain -= edg.getWeight();
+					neighborsGains.put(neighborID, neighborGain);
+
+					// store the gain and its index if it was minimum
+					if (neighborGain < minGain) {
+						minGain = neighborGain;
+						minGainNodeID = neighborID;
 					}
 				}
 			}
 		}
-		// Add the node to frontier nodes
+
+		// remove new added node from gains if exist (3)
+		neighborsGains.remove(nodeID);
 		// calculate the gain of unselected neighbors
-		ArrayList<Tuple<Integer, Integer>> unselectedNeighborsGains = new ArrayList<Tuple<Integer, Integer>>(
-				unselectedNeighbors.size());
-		for (int i = 0; i < unselectedNeighbors.size(); i++) {
-			int neighborID = unselectedNeighbors.get(i);
-			int neighborGain = getNodeGain(neighborID, partition);
-			unselectedNeighborsGains.add(new Tuple<Integer, Integer>(neighborID, neighborGain));
-			if (neighborGain < minGain) {
-				minGain = neighborGain;
-				minGainNodeID = neighborID;
+		Iterator<Integer> unselectedNeighborsIt = unselectedNeighbors.iterator();
+		while (unselectedNeighborsIt.hasNext()) {
+			int unselectedNeighborId = unselectedNeighborsIt.next();
+			if (!neighborsGains.containsKey(unselectedNeighborId)) {
+				int neighborGain = getNodeGain(unselectedNeighborId, partition);
+				unselectedNeighbors.add(unselectedNeighborId);
+				neighborsGains.put(unselectedNeighborId, neighborGain);
+				if (!neighborToFrontiers.containsKey(unselectedNeighborId)) {
+					neighborToFrontiers.put(unselectedNeighborId, new HashSet<Integer>());
+				}
+				neighborToFrontiers.get(unselectedNeighborId).add(nodeID);
+				if (neighborGain < minGain) {
+					minGain = neighborGain;
+					minGainNodeID = unselectedNeighborId;
+				}
 			}
 		}
-		if (unselectedNeighborsGains.size() > 0) {
-			frontierNodes.put(nodeID, unselectedNeighborsGains);
+
+		// Add the node to frontier nodes if has unselected neighbors
+		if (unselectedNeighbors.size() > 0) {
+			frontierToNeighbors.put(nodeID, unselectedNeighbors);
 		}
 		return minGainNodeID;
 	}
+	// private int addNodeToFrontier(int nodeID, HashMap<Integer,
+	// ArrayList<Tuple<Integer, Integer>>> frontierNodes,
+	// HashSet<Integer> unselectedNodesIDs, Partition partition) {
+	//
+	// // get the nodes neighbors
+	// Node cur = this.graph.getNode(nodeID);
+	// Node[] curNeighbors = cur.getNeighbors();
+	// ArrayList<Integer> unselectedNeighbors = new
+	// ArrayList<Integer>(curNeighbors.length);
+	//
+	// // filter neighbors selected in previous partitions
+	// for (int i = 0; i < curNeighbors.length; i++) {
+	// if (unselectedNodesIDs.contains(curNeighbors[i].getNodeID())) {
+	// unselectedNeighbors.add(curNeighbors[i].getNodeID());
+	// }
+	// }
+	//
+	// int minGain = Integer.MAX_VALUE;
+	// int minGainNodeID = -1;
+	// // 1- iterate through all frontier nodes neighbors to upgrade their gain
+	// Iterator<Entry<Integer, ArrayList<Tuple<Integer, Integer>>>> it =
+	// frontierNodes.entrySet().iterator();
+	// while (it.hasNext()) {
+	// Map.Entry<Integer, ArrayList<Tuple<Integer, Integer>>> pair =
+	// (Map.Entry<Integer, ArrayList<Tuple<Integer, Integer>>>) it
+	// .next();
+	// ArrayList<Tuple<Integer, Integer>> neighborsGain =
+	// (ArrayList<Tuple<Integer, Integer>>) pair.getValue();
+	// // loop through neighbors
+	// // if it is the new node remove it
+	// // if the new node is not a neighbor do nothing
+	// // if it is a neighbor, subtract the weight of edge
+	// // connecting them from the gain
+	// for (int i = 0; i < neighborsGain.size(); i++) {
+	// if (neighborsGain.get(i).x == nodeID) {
+	// neighborsGain.remove(i);
+	// // if neighbors list is empty, remove the parent
+	// // node from the frontier
+	// if (neighborsGain.size() == 0) {
+	// it.remove();
+	// }
+	// i--;
+	// continue;
+	// } else {
+	// int neighborID = neighborsGain.get(i).x;
+	// Edge edg = this.graph.getEdge(nodeID, neighborID);
+	// if (edg != null) {
+	// int gain = neighborsGain.get(i).y - edg.getWeight();
+	// Tuple<Integer, Integer> tup = new Tuple<Integer, Integer>(neighborID,
+	// gain);
+	// neighborsGain.set(i, tup);
+	// // store the gain and its index if it was minimum
+	// if (gain < minGain) {
+	// minGain = gain;
+	// minGainNodeID = neighborID;
+	// }
+	// } else {
+	// int gain = neighborsGain.get(i).y;
+	// if (gain < minGain) {
+	// minGain = gain;
+	// minGainNodeID = neighborID;
+	// }
+	// }
+	// }
+	// }
+	// }
+	// // Add the node to frontier nodes
+	// // calculate the gain of unselected neighbors
+	// ArrayList<Tuple<Integer, Integer>> unselectedNeighborsGains = new
+	// ArrayList<Tuple<Integer, Integer>>(
+	// unselectedNeighbors.size());
+	// for (int i = 0; i < unselectedNeighbors.size(); i++) {
+	// int neighborID = unselectedNeighbors.get(i);
+	// int neighborGain = getNodeGain(neighborID, partition);
+	// unselectedNeighborsGains.add(new Tuple<Integer, Integer>(neighborID,
+	// neighborGain));
+	// if (neighborGain < minGain) {
+	// minGain = neighborGain;
+	// minGainNodeID = neighborID;
+	// }
+	// }
+	// if (unselectedNeighborsGains.size() > 0) {
+	// frontierNodes.put(nodeID, unselectedNeighborsGains);
+	// }
+	// return minGainNodeID;
+	// }
 
 	private int getNodeGain(int nodeID, Partition partition) {
 		int nodeOutsideEdgesWeight = 0;
@@ -247,6 +359,9 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 		// get weights of edges inside partition
 		// and edges outside of the partition
 		for (int i = 0; i < curNeighbors.length; i++) {
+			if (this.graphSubset != null)
+				if (!this.graphSubset.contains(curNeighbors[i]))
+					continue;
 			if (partition.containsNode(curNeighbors[i].getNodeID())) {
 				nodeInsideEdgesWeight += this.graph.getEdge(nodeID, curNeighbors[i].getNodeID()).getWeight();
 			} else {

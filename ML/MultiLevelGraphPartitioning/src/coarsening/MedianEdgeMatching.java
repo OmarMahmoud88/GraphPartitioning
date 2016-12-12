@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 import structure.Edge;
 import structure.Graph;
+import structure.RandomSet;
 
 /*
  * Heaviest Edge Matching
@@ -16,12 +17,12 @@ import structure.Graph;
 public class MedianEdgeMatching extends Matching {
 
 	@Override
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
+	public ArrayList<RandomSet<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		HashSet<Integer> unvisitedNodes = new HashSet<Integer>(numberOfNodes);
 		HashSet<Integer> visitedNodes = new HashSet<Integer>(numberOfNodes);
-		ArrayList<ArrayList<Integer>> nodesTree = new ArrayList<ArrayList<Integer>>();
+		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
 		for (int i = 0; i < numberOfNodes; i++) {
 			unvisitedNodes.add(i + 1);
 		}
@@ -35,11 +36,12 @@ public class MedianEdgeMatching extends Matching {
 			int pairWeight = graph.getNode(sourceID).getNodeWeight() + graph.getNode(destinationID).getNodeWeight();
 			// check if the source or the destination is visited before
 			// check if the pair was matched will exceed max partition weight
-			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID) || pairWeight > maxPartitionWeight) {
+			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID)
+					|| pairWeight > maxPartitionWeight) {
 				// do not thing
 			} else {
 				// Collapse Edge ends
-				ArrayList<Integer> parentNode = new ArrayList<>(2);
+				RandomSet<Integer> parentNode = new RandomSet<Integer>();
 				parentNode.add(sourceID);
 				parentNode.add(destinationID);
 				nodesTree.add(parentNode);
@@ -50,20 +52,21 @@ public class MedianEdgeMatching extends Matching {
 				unvisitedNodes.remove(sourceID);
 			}
 		}
-		
-		for (int i = (allEdges.length - 1)/2; i >= 0; i--) {
+
+		for (int i = (allEdges.length - 1) / 2; i >= 0; i--) {
 			// the first half nodes
 			int sourceID = allEdges[i].getSourceID();
 			int destinationID = allEdges[i].getDestinationID();
 			int pairWeight = graph.getNode(sourceID).getNodeWeight() + graph.getNode(destinationID).getNodeWeight();
 			// check if the source or the destination is visited before
 			// check if the pair was matched will exceed max partition weight
-			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID) || pairWeight > maxPartitionWeight) {
+			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID)
+					|| pairWeight > maxPartitionWeight) {
 				// do not thing
 				continue;
 			} else {
 				// Collapse Edge ends
-				ArrayList<Integer> parentNode = new ArrayList<>(2);
+				RandomSet<Integer> parentNode = new RandomSet<Integer>();
 				parentNode.add(sourceID);
 				parentNode.add(destinationID);
 				nodesTree.add(parentNode);
@@ -80,12 +83,13 @@ public class MedianEdgeMatching extends Matching {
 			pairWeight = graph.getNode(sourceID).getNodeWeight() + graph.getNode(destinationID).getNodeWeight();
 			// check if the source or the destination is visited before
 			// check if the pair was matched will exceed max partition weight
-			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID) || pairWeight > maxPartitionWeight) {
+			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID)
+					|| pairWeight > maxPartitionWeight) {
 				// do not thing
 				continue;
 			} else {
 				// Collapse Edge ends
-				ArrayList<Integer> parentNode = new ArrayList<>(2);
+				RandomSet<Integer> parentNode = new RandomSet<Integer>();
 				parentNode.add(sourceID);
 				parentNode.add(destinationID);
 				nodesTree.add(parentNode);
@@ -99,15 +103,15 @@ public class MedianEdgeMatching extends Matching {
 
 		// add remaining Nodes as parents
 		for (Iterator<Integer> it = unvisitedNodes.iterator(); it.hasNext();) {
-		    int nodeID = it.next();
-		    ArrayList<Integer> parentNode = new ArrayList<>(1);
+			int nodeID = it.next();
+			RandomSet<Integer> parentNode = new RandomSet<Integer>();
 			parentNode.add(nodeID);
 			nodesTree.add(parentNode);
 			// add nodes to visited nodes
 			visitedNodes.add(nodeID);
-		    it.remove();
+			it.remove();
 		}
-		
+
 		return nodesTree;
 	}
 

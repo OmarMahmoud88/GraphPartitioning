@@ -6,6 +6,7 @@ import java.util.HashSet;
 
 import structure.Edge;
 import structure.Graph;
+import structure.RandomSet;
 
 /*
  * Heavy Edge Matching
@@ -17,13 +18,13 @@ import structure.Graph;
 
 public class HeavyEdgeMatching extends Matching{
 
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
+	public ArrayList<RandomSet<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		ArrayList<Integer> unvisitedNodes = new ArrayList<Integer>(
 				numberOfNodes);
 		HashSet<Integer> visitedNodes = new HashSet<Integer>(numberOfNodes);
-		ArrayList<ArrayList<Integer>> nodesTree = new ArrayList<ArrayList<Integer>>();
+		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
 		for (int i = 0; i < numberOfNodes; i++) {
 			unvisitedNodes.add(i + 1);
 		}
@@ -73,16 +74,16 @@ public class HeavyEdgeMatching extends Matching{
 				// if not visited before
 				break;
 			}
-			ArrayList<Integer> nodeChilds;
+			RandomSet<Integer> nodeChilds;
 			// check if any Edge was selected
 			if (heavyEdge == null) {
 				// collapse Node by itself
-				nodeChilds = new ArrayList<Integer>();
+				nodeChilds = new RandomSet<Integer>();
 				nodeChilds.add(currentNodeID);
 				nodesTree.add(nodeChilds);
 				visitedNodes.add(currentNodeID);
 			} else {
-				nodeChilds = new ArrayList<Integer>();
+				nodeChilds = new RandomSet<Integer>();
 				nodeChilds.add(heavyEdge.getSourceID());
 				nodeChilds.add(heavyEdge.getDestinationID());
 				nodesTree.add(nodeChilds);

@@ -2,6 +2,7 @@ package structure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,11 +25,14 @@ public class PartitionGroup {
 		this.graph = partsGroup.graph;
 		this.partitions = new HashMap<Integer, Partition>();
 		this.edgeCut = -1;
-		ArrayList<ArrayList<Integer>> partsNodes = partsGroup.getAllPartitionsNodes();
+		ArrayList<RandomSet<Integer>> partsNodes = partsGroup.getAllPartitionsNodes();
+		
 		for (int i = 0; i < partsNodes.size(); i++) {
 			Partition part = new Partition(this.graph, i+1);
-			for (int j = 0; j < partsNodes.get(i).size(); j++) {
-				part.addNode(partsNodes.get(i).get(j));
+			Iterator<Integer> partsNodesIt = partsNodes.get(i).iterator();
+			while (partsNodesIt.hasNext()) {
+				part.addNode(partsNodesIt.next());
+				
 			}
 			this.addPartition(part);
 		}
@@ -45,14 +49,14 @@ public class PartitionGroup {
 		return partitionNumber;
 	}
 
-	public ArrayList<ArrayList<Integer>> getAllPartitionsNodes() {
-		ArrayList<ArrayList<Integer>> nodesTree = new ArrayList<ArrayList<Integer>>();
+	public ArrayList<RandomSet<Integer>> getAllPartitionsNodes() {
+		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
 		Iterator<Entry<Integer, Partition>> partsIt = this.partitions.entrySet().iterator();
 		while (partsIt.hasNext()) {
 			Map.Entry<Integer, Partition> tuple = partsIt.next();
 			Partition part = tuple.getValue();
 			Iterator<Integer> it = part.getNodeIDs().iterator();
-			ArrayList<Integer> parentNode = new ArrayList<>(part.getNumberOfNodes());
+			RandomSet<Integer> parentNode = new RandomSet<Integer>();
 			while (it.hasNext()) {
 				int nodeID = it.next();
 				parentNode.add(nodeID);

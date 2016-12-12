@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 import structure.Edge;
 import structure.Graph;
+import structure.RandomSet;
 
 /*
  * Heaviest Edge Matching
@@ -16,12 +17,12 @@ import structure.Graph;
 public class HeaviestEdgeMatching extends Matching {
 
 	@Override
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
+	public ArrayList<RandomSet<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		HashSet<Integer> unvisitedNodes = new HashSet<Integer>(numberOfNodes);
 		HashSet<Integer> visitedNodes = new HashSet<Integer>(numberOfNodes);
-		ArrayList<ArrayList<Integer>> nodesTree = new ArrayList<ArrayList<Integer>>();
+		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
 		for (int i = 0; i < numberOfNodes; i++) {
 			unvisitedNodes.add(i + 1);
 		}
@@ -40,7 +41,7 @@ public class HeaviestEdgeMatching extends Matching {
 				continue;
 			} else {
 				// Collapse Edge ends
-				ArrayList<Integer> parentNode = new ArrayList<>(2);
+				RandomSet<Integer> parentNode = new RandomSet<Integer>();
 				parentNode.add(sourceID);
 				parentNode.add(destinationID);
 				nodesTree.add(parentNode);
@@ -55,7 +56,7 @@ public class HeaviestEdgeMatching extends Matching {
 		// add remaining Nodes as parents
 		for (Iterator<Integer> it = unvisitedNodes.iterator(); it.hasNext();) {
 		    int nodeID = it.next();
-		    ArrayList<Integer> parentNode = new ArrayList<>(1);
+		    RandomSet<Integer> parentNode = new RandomSet<Integer>();
 			parentNode.add(nodeID);
 			nodesTree.add(parentNode);
 			// add nodes to visited nodes

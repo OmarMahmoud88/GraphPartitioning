@@ -108,4 +108,11 @@ public class Node {
 		}
 		return totalEdgesWeight;
 	}
+	
+	public void addEdge(Edge edge){
+		int srcNodeID = edge.getSourceID();
+		int dstNodeID = edge.getDestinationID();
+		int otherNodeID = this.nodeID == srcNodeID ? dstNodeID : srcNodeID;
+
+	}
 }

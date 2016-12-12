@@ -2,7 +2,6 @@ package structure;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,8 +16,8 @@ public class Graph {
 	protected Node[] nodes;
 	protected Edge[] edges;
 	protected int[] shuffeledNodesIDs;
-	//protected RealMatrix laplacianMatrix;
-	//protected DenseMatrix64F laplacianMatrix;
+	// protected RealMatrix laplacianMatrix;
+	// protected DenseMatrix64F laplacianMatrix;
 	protected double[][] laplacianMatrix;
 	protected double[] vertixWeightDiagonalMatrix;
 	protected double[] vertixDegreeDiagonalMatrix;
@@ -178,31 +177,18 @@ public class Graph {
 	 * This function return n random node ID using Durstenfeld's algorithm
 	 * Durstenfeld, R. (July 1964). "Algorithm 235: Random permutation
 	 */
-	public int[] getNRandomNodesIDs(int n) {
-		int[] randomIDs = new int[n];
-		int index = 0;
-		try {
-			index = this.shuffeledNodesIDs.length - 1;
-		} catch (Exception e) {
-			System.out.println("this.shuffeledNodesIDs.length = " + this.shuffeledNodesIDs.length);
+	public int[] getNRandomNodesIDs(int n, RandomSet<Integer> graphSubset) {
+		int[] randoms = new int[n];
+		if (graphSubset != null) {
+			final int[] randomIDs = new Random().ints(0, graphSubset.size() - 1).distinct().limit(n).toArray();
+			for (int i = 0; i < randomIDs.length; i++) {
+				randoms[i] = graphSubset.get(i);
+			}
+		} else {
+			randoms = new Random().ints(1, this.numberOfNodes).distinct().limit(n).toArray();
 		}
 
-		Random rnd = new Random();
-		int randomIndex = -1;
-		int tmp;
-		// for n iteration do
-		// n-1 swaps
-		for (int i = 0; i < n && index > 0; i++, index--) {
-			// generate random Index
-			randomIndex = rnd.nextInt(index);
-			// swap values
-			tmp = this.shuffeledNodesIDs[randomIndex];
-			this.shuffeledNodesIDs[randomIndex] = this.shuffeledNodesIDs[index];
-			this.shuffeledNodesIDs[index] = tmp;
-			// store randomvalue to array
-			randomIDs[i] = tmp;
-		}
-		return randomIDs;
+		return randoms;
 	}
 
 	/*
@@ -305,7 +291,7 @@ public class Graph {
 	}
 
 	public double[][] getLaplacianMatrix() {
-		
+
 		if (this.laplacianMatrix == null) {
 			this.laplacianMatrix = new double[this.numberOfNodes][this.numberOfNodes];
 			for (int i = 0; i < laplacianMatrix.length; i++) {
@@ -318,16 +304,16 @@ public class Graph {
 					int neighborID = neighbors[j].getNodeID();
 					Edge edge = this.getEdge(curNodeID, neighborID);
 					totalEdgesWeights += edge.getWeight();
-					laplacianMatrix[i][neighborID-1]= -edge.getWeight(); 
+					laplacianMatrix[i][neighborID - 1] = -edge.getWeight();
 				}
 				laplacianMatrix[i][i] = totalEdgesWeights;
 			}
 		}
 		return laplacianMatrix;
 	}
-	
-public double[] getVertixWeightsDiagonalMatrix() {
-		
+
+	public double[] getVertixWeightsDiagonalMatrix() {
+
 		if (this.vertixWeightDiagonalMatrix == null) {
 			this.vertixWeightDiagonalMatrix = new double[this.numberOfNodes];
 			for (int i = 0; i < vertixWeightDiagonalMatrix.length; i++) {
@@ -339,8 +325,8 @@ public double[] getVertixWeightsDiagonalMatrix() {
 		return vertixWeightDiagonalMatrix;
 	}
 
-	public ArrayList<Integer> getNodeChilds(int nodeID) {
-		ArrayList<Integer> childs = new ArrayList<Integer>(1);
+	public RandomSet<Integer> getNodeChilds(int nodeID) {
+		RandomSet<Integer> childs = new RandomSet<Integer>();
 		childs.add(nodeID);
 		return childs;
 	}
@@ -357,7 +343,7 @@ public double[] getVertixWeightsDiagonalMatrix() {
 				for (int j = 0; j < neighbors.length; j++) {
 					int neighborID = neighbors[j].getNodeID();
 					Edge edge = this.getEdge(curNodeID, neighborID);
-					totalEdgesWeights += edge.getWeight(); 
+					totalEdgesWeights += edge.getWeight();
 				}
 				vertixDegreeDiagonalMatrix[i] = totalEdgesWeights;
 			}

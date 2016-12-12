@@ -9,6 +9,7 @@ import org.ejml.interfaces.decomposition.EigenDecomposition;
 import structure.Graph;
 import structure.Partition;
 import structure.PartitionGroup;
+import structure.RandomSet;
 import utilities.ArrayIndexComparator;
 
 public class SpectralPartitioningGraphCutEigenVector extends Partitioning {
@@ -21,7 +22,7 @@ public class SpectralPartitioningGraphCutEigenVector extends Partitioning {
 	}
 
 	@Override
-	public PartitionGroup getPartitions(Graph gr, int numberOfPartitions, int numberOfTries) {
+	public PartitionGroup getPartitions(Graph gr, RandomSet<Integer> graphSubset, int numberOfPartitions, int numberOfTries) {
 		double[][] lapMatrix = gr.getLaplacianMatrix();
 		double[] vertixWeightDiagMatrix = gr.getVertixWeightsDiagonalMatrix();
 		

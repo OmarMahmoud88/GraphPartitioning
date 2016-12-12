@@ -98,4 +98,9 @@ public class Partition {
 		return partitionID;
 	}
 
+	public void setPartitionID(int partitionID) {
+		this.partitionID = partitionID;
+		
+	}
+
 }

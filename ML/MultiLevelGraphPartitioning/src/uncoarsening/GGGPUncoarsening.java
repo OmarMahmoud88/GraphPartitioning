@@ -6,54 +6,46 @@ import java.util.Iterator;
 
 import partitioning.GreedyGraphGrowingPartitioning;
 import partitioning.Partitioning;
-import refinement.KLRefinement2;
-import refinement.NaiiveKLRefinement;
+import refinement.FMRefinement;
 import structure.CoarseGraph;
 import structure.Graph;
 import structure.Partition;
 import structure.PartitionGroup;
-import structure.SubGraph;
+import structure.RandomSet;
 
 public class GGGPUncoarsening extends Uncoarsening {
 
 	@Override
 	public PartitionGroup Uncoarsen(Graph originalGraph, CoarseGraph cGraph) {
-		// TODO Auto-generated method stub
 		PartitionGroup parts = new PartitionGroup(originalGraph);
-		ArrayList<ArrayList<Integer>> nodesTree = cGraph.getNodesTree();
+		ArrayList<RandomSet<Integer>> nodesTree = cGraph.getNodesTree();
 		int orgPartitionID = 1;
 		for (int i = 0; i < nodesTree.size(); i++) {
-
 			if (nodesTree.get(i).size() < 3) {
-				for (int j = 0; j < nodesTree.get(i).size(); j++) {
+				Iterator<Integer> childsIt = nodesTree.get(i).iterator();
+				while (childsIt.hasNext()) {
 					Partition origPart = new Partition(originalGraph, orgPartitionID);
-					int origNodeID = nodesTree.get(i).get(j);
+					int origNodeID = childsIt.next();
 					origPart.addNode(origNodeID);
 					parts.addPartition(origPart);
 					orgPartitionID++;
 				}
 			} else {
-				Graph subGraph = new SubGraph(originalGraph, nodesTree.get(i));
-				int numOfTrials = Math.min(10, subGraph.getNumberOfNodes() / 2);
-				Partitioning partAlg = new GreedyGraphGrowingPartitioning(subGraph, 2, numOfTrials, (float) 0.1);
-				PartitionGroup partsGroup = partAlg.getPartitions(subGraph, 2, numOfTrials);
-				KLRefinement2 kl = null;
-				kl = new KLRefinement2(subGraph, partsGroup, 10, 10, -10000, (float) 0.3);
-				PartitionGroup refinedParts = kl.getRefinedPartitions();
-				for (int j = 1; j <= refinedParts.getPartitionNumber(); j++) {
-					Partition origPart = new Partition(originalGraph, orgPartitionID);
-					Partition subPart = refinedParts.getPartition(j);
-					HashSet<Integer> subPartNodes = subPart.getNodeIDs();
-					Iterator<Integer> it = subPartNodes.iterator();
-					while (it.hasNext()) {
-						int subNodeID = it.next();
-						int orgNodeID = ((SubGraph) subGraph).getOriginalNodeID(subNodeID);
-						origPart.addNode(orgNodeID);
-
-					}
-					parts.addPartition(origPart);
-					orgPartitionID++;
-				}
+//				Graph subGraph = new SubGraph(originalGraph, nodesTree.get(i));
+				int numOfTrials = Math.min(10, nodesTree.get(i).size() / 2);
+				Partitioning partAlg = new GreedyGraphGrowingPartitioning(originalGraph, 2, numOfTrials, (float) 0.1);
+				PartitionGroup partsGroup = partAlg.getPartitions(originalGraph, nodesTree.get(i), 2, numOfTrials);
+				FMRefinement fm = new FMRefinement(originalGraph, nodesTree.get(i), partsGroup, 10, 10, -1000, (float) 0.1);
+				PartitionGroup refinedParts = fm.getRefinedPartitions();
+				
+				Partition part1 = refinedParts.getPartition(1);
+				part1.setPartitionID(orgPartitionID);
+				parts.addPartition(part1);
+				orgPartitionID++;
+				Partition part2 = refinedParts.getPartition(2);
+				part2.setPartitionID(orgPartitionID);
+				parts.addPartition(part2);
+				orgPartitionID++;
 			}
 
 		}

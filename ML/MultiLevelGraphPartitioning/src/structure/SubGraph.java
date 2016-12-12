@@ -3,9 +3,9 @@ package structure;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 
 public class SubGraph extends Graph {
 
@@ -13,7 +13,7 @@ public class SubGraph extends Graph {
 	private HashMap<Integer, Integer> originalSubNodesMapping;
 	private Graph parentGraph;
 
-	public SubGraph(Graph parentGraph, ArrayList<Integer> nodesSubset) {
+	public SubGraph(Graph parentGraph, HashSet<Integer> nodesSubset) {
 		this.parentGraph = parentGraph;
 		this.numberOfNodes = nodesSubset.size();
 		this.nodes = new Node[this.numberOfNodes];
@@ -22,9 +22,13 @@ public class SubGraph extends Graph {
 		subOriginalNodesMapping = new HashMap<>(this.numberOfNodes);
 		originalSubNodesMapping = new HashMap<>(this.numberOfNodes);
 		HashSet<Integer> orgNodes = new HashSet<>(nodesSubset);
-		for (int i = 0; i < nodesSubset.size(); i++) {
-			subOriginalNodesMapping.put(i + 1, nodesSubset.get(i));
-			originalSubNodesMapping.put(nodesSubset.get(i), i + 1);
+		Iterator<Integer> nodesIt = nodesSubset.iterator();
+		int subIndex = 1;
+		while (nodesIt.hasNext()) {
+			int nodeID = nodesIt.next();
+			subOriginalNodesMapping.put(subIndex, nodeID);
+			originalSubNodesMapping.put(nodeID, subIndex);
+			subIndex ++;
 		}
 		// create subgraph nodes
 		for (int i = 0; i < nodes.length; i++) {

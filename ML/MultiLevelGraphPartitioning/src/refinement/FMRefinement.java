@@ -12,6 +12,7 @@ import structure.Graph;
 import structure.Node;
 import structure.Partition;
 import structure.PartitionGroup;
+import structure.RandomSet;
 import structure.Tuple;
 
 public class FMRefinement {
@@ -35,18 +36,30 @@ public class FMRefinement {
 	private HashMap<Integer, HashMap<Integer, HashSet<Integer>>> gainPartNodeMap;
 	private int maxEdgeCutGain;
 	private int minEdgeCutGain;
+	private RandomSet<Integer> graphSubset;
 
-	public FMRefinement(Graph graph, PartitionGroup partsGroup, int maxSwaps, int maxNonPositiveSwaps,
-			int minGainAllowed, float imbalanceRatio) {
+	public FMRefinement(Graph graph, RandomSet<Integer> graphSubset, PartitionGroup partsGroup, int maxSwaps,
+			int maxNonPositiveSwaps, int minGainAllowed, float imbalanceRatio) {
 		// assign attributes
 		this.graph = graph;
 		this.maxTransfers = maxSwaps;
 		this.minGainAllowed = minGainAllowed;
 		this.numberOfTransfersApplied = 0;
-		this.lockedNodes = new FixedSizeHashSet<Integer>(Math.max(16, maxNonPositiveSwaps/2));
+		this.lockedNodes = new FixedSizeHashSet<Integer>(Math.max(16, maxNonPositiveSwaps / 2));
 		this.maxNonPositiveSwaps = maxNonPositiveSwaps;
 		this.nonPositiveSwapsApplied = 0;
-		int totalGraphWeight = this.graph.getTotalNodesWeights();
+		this.graphSubset = graphSubset;
+		int totalGraphWeight = 0;
+		if (graphSubset != null) {
+			Iterator<Integer> subIt = graphSubset.iterator();
+			while (subIt.hasNext()) {
+				int subNodeID = subIt.next();
+				totalGraphWeight += this.graph.getNode(subNodeID).getNodeWeight();
+			}
+
+		} else {
+			totalGraphWeight = this.graph.getTotalNodesWeights();
+		}
 		this.numberOfPartitions = partsGroup.getPartitionNumber();
 		float exactPartitionWeight = (float) totalGraphWeight / this.numberOfPartitions;
 		this.maxPartitionWeight = (int) Math.ceil((1 + imbalanceRatio) * Math.ceil(exactPartitionWeight));
@@ -85,6 +98,11 @@ public class FMRefinement {
 				Node[] neighbors = cur.getNeighbors();
 				for (int j = 0; j < neighbors.length; j++) {
 					int neighborID = neighbors[j].getNodeID();
+					if (graphSubset != null) {
+						if (!graphSubset.contains(neighborID)) {
+							continue;
+						}
+					}
 					if (!partition.containsNode(neighborID)) {
 						int neighborPartitionID = partsGroup.getNodePartitionID(neighborID);
 						this.borderNodes.get(neighborPartitionID - 1).add(neighbors[j].getNodeID());
@@ -160,7 +178,7 @@ public class FMRefinement {
 			fmTransfer = this.getTransferWithMaxGain();
 			if (fmTransfer == null) {
 				// no more transfers allowed found
-//				System.out.println("No more Transfers.");
+				// System.out.println("No more Transfers.");
 				break;
 			}
 
@@ -183,14 +201,14 @@ public class FMRefinement {
 				if (this.bestParts == null) {
 					this.bestParts = new PartitionGroup(this.refinedPartitions);
 				}
-			}else{
+			} else {
 				// we are converging local minima
 				// or got out of local minima
 				this.minEdgeCut = this.curEdgeCut;
 				this.bestParts = null;
 				this.nonPositiveSwapsApplied = 0;
 				this.lockedNodes.clear();
-				
+
 			}
 
 			// Transfer Node
@@ -200,13 +218,13 @@ public class FMRefinement {
 			this.transferNode(fmTransfer);
 
 		}
-		
-//		if(this.numberOfTransfersApplied >= this.maxTransfers){
-//			System.out.println("Transfers Allowed Consumed");
-//		}
-//		else if(this.nonPositiveSwapsApplied >= this.maxNonPositiveSwaps){
-//			System.out.println("Negative Transfers Allowed Consumed");
-//		}
+
+		// if(this.numberOfTransfersApplied >= this.maxTransfers){
+		// System.out.println("Transfers Allowed Consumed");
+		// }
+		// else if(this.nonPositiveSwapsApplied >= this.maxNonPositiveSwaps){
+		// System.out.println("Negative Transfers Allowed Consumed");
+		// }
 	}
 
 	private void transferNode(FMTransfer fmTransfer) {
@@ -243,6 +261,11 @@ public class FMRefinement {
 			// node, and that won't change
 			Node neighborNode = nodeNeighbors[i];
 			int neighborID = neighborNode.getNodeID();
+			if (this.graphSubset != null) {
+				if (!this.graphSubset.contains(neighborID)) {
+					continue;
+				}
+			}
 			if (curPart.containsNode(neighborID)) {
 				this.borderNodes.get(curPartID - 1).add(neighborID);
 			} else if (destPart.containsNode(neighborID)) {
@@ -332,6 +355,11 @@ public class FMRefinement {
 				// entries
 				Node neighborNode = nodeNeighbors[j];
 				int neighborID = neighborNode.getNodeID();
+				if (this.graphSubset != null) {
+					if (!this.graphSubset.contains(neighborID)) {
+						continue;
+					}
+				}
 				int neighborPartitionID = this.nodePartitionMap.get(neighborID);
 				// if neighbor is in the same partition, there is no gain to
 				// update
@@ -418,6 +446,11 @@ public class FMRefinement {
 		for (int i = 0; i < neighbors.length; i++) {
 			Node neighborNode = neighbors[i];
 			int neighborID = neighborNode.getNodeID();
+			if (this.graphSubset != null) {
+				if (!this.graphSubset.contains(neighborID)) {
+					continue;
+				}
+			}
 			if (!curPart.containsNode(neighborID)) {
 				return true;
 			}
@@ -427,7 +460,8 @@ public class FMRefinement {
 
 	private FMTransfer getTransferWithMaxGain() {
 		FMTransfer fmPair = null;
-		for (int i = this.maxEdgeCutGain; i >= Math.max(this.minGainAllowed, this.minEdgeCutGain) && fmPair == null; i--) {
+		for (int i = this.maxEdgeCutGain; i >= Math.max(this.minGainAllowed, this.minEdgeCutGain)
+				&& fmPair == null; i--) {
 			int gain = i;
 			// check if max gain is not allowed
 			if (gain < this.minGainAllowed) {
@@ -441,15 +475,25 @@ public class FMRefinement {
 				while (partsNodesIt.hasNext()) {
 					Entry<Integer, HashSet<Integer>> partNodesEntry = partsNodesIt.next();
 					int partID = partNodesEntry.getKey();
+
 					HashSet<Integer> nodesSet = partNodesEntry.getValue();
 					// loop all nodes in partition
 					Iterator<Integer> nodesIt = nodesSet.iterator();
 					while (nodesIt.hasNext()) {
 						int nodeID = nodesIt.next();
+						int nodePartitionID = this.nodePartitionMap.get(nodeID);
+						Partition prt = this.refinedPartitions.getPartition(nodePartitionID);
+
+						// if the partition has single node
+						// do not empty the partition
+						if (prt.getNumberOfNodes() < 2) {
+							continue;
+						}
 						// check if node is locked
 						if (this.lockedNodes.itemExists(nodeID)) {
 							continue;
 						}
+
 						// calculate the balance gain
 						// if allowed return the transfer
 						// TODO: we here return the first available transfer
@@ -508,6 +552,11 @@ public class FMRefinement {
 		Node[] nodeNeighbors = this.graph.getNode(nodeID).getNeighbors();
 		for (int i = 0; i < nodeNeighbors.length; i++) {
 			int neighborID = nodeNeighbors[i].getNodeID();
+			if (this.graphSubset != null) {
+				if (!this.graphSubset.contains(neighborID)) {
+					continue;
+				}
+			}
 			int neighborPartitionID = this.nodePartitionMap.get(neighborID);
 			int edgeWeight = this.graph.getEdge(nodeID, neighborID).getWeight();
 			if (neighborPartitionID == curPartID) {

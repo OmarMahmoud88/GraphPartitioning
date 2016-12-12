@@ -9,7 +9,7 @@ import java.util.Iterator;
 public class CoarseGraph extends Graph {
 
 	private Graph parentGraph;
-	private ArrayList<ArrayList<Integer>> nodesTree;
+	private ArrayList<RandomSet<Integer>> nodesTree;
 	// reversed map
 	// this map point from child node to parent node
 	// it will be O(V) space
@@ -17,7 +17,7 @@ public class CoarseGraph extends Graph {
 	private HashMap<Integer, Integer> reversedMap;
 	private ArrayList<Edge> edgesList;
 
-	public CoarseGraph(Graph parentGraph, ArrayList<ArrayList<Integer>> nodesTree) {
+	public CoarseGraph(Graph parentGraph, ArrayList<RandomSet<Integer>> nodesTree) {
 		super();
 		this.parentGraph = parentGraph;
 		this.nodesTree = nodesTree;
@@ -28,6 +28,34 @@ public class CoarseGraph extends Graph {
 		this.edgesList = new ArrayList<Edge>();
 		// create reversedMap
 		this.createReversedMap();
+		// create nodes
+//		for (int i = 1; i <= this.numberOfNodes; i++) {
+//			this.nodes[i-1] = new CoarseNode(i, this.getNodeWeight(i));
+//		}
+		// create edges
+		// loop parent graph edges
+		Edge[] parentGraphEdges = this.parentGraph.getEdges();
+		for (int i = 0; i < parentGraphEdges.length; i++) {
+			int childSrcNodeID = parentGraphEdges[i].getSourceID();
+			int childDstNodeID = parentGraphEdges[i].getDestinationID();
+			Edge childEdge = this.parentGraph.getEdge(childSrcNodeID, childDstNodeID);
+			int childEdgeWeight = childEdge.getWeight();
+			int parentSrcNodeID = this.reversedMap.get(childSrcNodeID);
+			int parentDstNodeID = this.reversedMap.get(childDstNodeID);
+			int tmpSrcNodeID = parentSrcNodeID;
+			parentSrcNodeID = Math.min(parentSrcNodeID, parentDstNodeID);
+			parentDstNodeID = Math.max(tmpSrcNodeID, parentDstNodeID);
+			Tuple<Integer, Integer> edgeTuple = new Tuple<Integer, Integer> (parentSrcNodeID, parentDstNodeID);
+			if (!this.nodesEdgesMap.containsKey(edgeTuple)) {
+				Edge parentEdge = new CoarseEdge(parentSrcNodeID, parentDstNodeID, childEdgeWeight);
+				this.nodesEdgesMap.put(edgeTuple, parentEdge);
+			}
+			else {
+				Edge parentEdge = this.nodesEdgesMap.get(edgeTuple);
+				parentEdge.setWeight(parentEdge.getWeight() + childEdgeWeight);
+//				this.nodesEdgesMap.put(edgeTuple, parentEdge);
+			}
+		}
 		// create nodes
 		int curNodeID;
 		for (int i = 0; i < this.numberOfNodes; i++) {
@@ -110,22 +138,16 @@ public class CoarseGraph extends Graph {
 		int childNodeID;
 		Node childNode;
 		Node[] childNodeNeighbors;
-		for (int i = 0; i < this.nodesTree.get(curNodeIndex).size(); i++) {
-			childNodeID = this.nodesTree.get(curNodeIndex).get(i);
+		Iterator<Integer> childsIt = this.nodesTree.get(curNodeIndex).iterator();
+		while (childsIt.hasNext()) {
+			childNodeID = childsIt.next();
 			childNode = this.parentGraph.getNode(childNodeID);
 
 			// get child Node Neighbors
 			childNodeNeighbors = childNode.getNeighbors();
 			for (int j = 0; j < childNodeNeighbors.length; j++) {
 				int neighborID = childNodeNeighbors[j].getNodeID();
-				//System.out.println(neighborID);
 				curNeighbor = this.reversedMap.get(neighborID);	
-//				try {
-//					curNeighbor = this.reversedMap.get(neighborID);	
-//				} catch (Exception e) {
-//					// TODO: handle exception
-//					System.out.println("neighborID = " + neighborID);
-//				}
 				
 				if (curNeighbor != curNodeID) {
 					curNeighbors.add(curNeighbor);
@@ -144,11 +166,11 @@ public class CoarseGraph extends Graph {
 		return curNeighborsArray;
 	}
 
-	public ArrayList<ArrayList<Integer>> getNodesTree() {
+	public ArrayList<RandomSet<Integer>> getNodesTree() {
 		return nodesTree;
 	}
 
-	public void setNodesTree(ArrayList<ArrayList<Integer>> nodesTree) {
+	public void setNodesTree(ArrayList<RandomSet<Integer>> nodesTree) {
 		this.nodesTree = nodesTree;
 	}
 
@@ -156,8 +178,9 @@ public class CoarseGraph extends Graph {
 		int weight = 0;
 		int curNodeIndex = curNodeID - 1;
 		int childNodeID;
-		for (int i = 0; i < this.nodesTree.get(curNodeIndex).size(); i++) {
-			childNodeID = this.nodesTree.get(curNodeIndex).get(i);
+		Iterator<Integer> childsIt = this.nodesTree.get(curNodeIndex).iterator();
+		while (childsIt.hasNext()) {
+			childNodeID = childsIt.next();
 			weight += this.parentGraph.getNode(childNodeID).getNodeWeight();
 		}
 		return weight;
@@ -169,28 +192,35 @@ public class CoarseGraph extends Graph {
 		int parentNodeID, childNodeID;
 		for (int i = 0; i < this.nodesTree.size(); i++) {
 			parentNodeID = i + 1;
-			for (int j = 0; j < this.nodesTree.get(i).size(); j++) {
-				childNodeID = this.nodesTree.get(i).get(j);
+			Iterator<Integer> childsIt = this.nodesTree.get(i).iterator();
+			while (childsIt.hasNext()) {
+				childNodeID = childsIt.next();
 				reversedMap.put(childNodeID, parentNodeID);
 			}
 		}
 	}
 
-	public ArrayList<Integer> getNodeChilds(int nodeID) {
+
+	public RandomSet<Integer> getNodeChilds(int nodeID) {
 		return this.nodesTree.get(nodeID - 1);
 	}
 
 	private int calculateEdgeWeight(int sourceID, int destinationID) {
 		int edgeWeight = 0;
-		ArrayList<Integer> sourceNeighbors = this.nodesTree.get(sourceID - 1);
-		ArrayList<Integer> destinationNeighbors = this.nodesTree.get(destinationID - 1);
-		for (int i = 0; i < sourceNeighbors.size(); i++) {
-			for (int j = 0; j < destinationNeighbors.size(); j++) {
-				Edge innerEdge = this.parentGraph.getEdge(sourceNeighbors.get(i), destinationNeighbors.get(j));
+		RandomSet<Integer> sourceNeighbors = this.nodesTree.get(sourceID - 1);
+		RandomSet<Integer> destinationNeighbors = this.nodesTree.get(destinationID - 1);
+		Iterator<Integer> sourceIt = sourceNeighbors.iterator();
+		while (sourceIt.hasNext()) {
+			int srcID = sourceIt.next();
+			Iterator<Integer> destIt = destinationNeighbors.iterator();
+			while (destIt.hasNext()) {
+				Edge innerEdge = this.parentGraph.getEdge(srcID, destIt.next());
 				if (innerEdge != null) {
 					edgeWeight += innerEdge.getWeight();
 				}
+				
 			}
+			
 		}
 		return edgeWeight;
 	}
@@ -211,6 +241,13 @@ public class CoarseGraph extends Graph {
 			}
 		}
 		return adjMatrix;
+	}
+	
+	public void switchParentGraph(Graph parentGraph, ArrayList<RandomSet<Integer>> nodesTree){
+		this.parentGraph = parentGraph;
+		this.nodesTree = nodesTree;
+		// create reversedMap
+		this.createReversedMap();
 	}
 	/*
 	 * Setters & Getters

@@ -13,6 +13,7 @@ import java.util.Queue;
 import structure.Graph;
 import structure.Node;
 import structure.NodesMatching;
+import structure.RandomSet;
 import structure.Tuple;
 import structure.UnionFind;
 
@@ -330,7 +331,7 @@ public class BlossomMatching extends Matching {
 	}
 
 	@Override
-	public ArrayList<ArrayList<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
+	public ArrayList<RandomSet<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		this.graph = graph;
 		this.matching = new NodesMatching(graph.getOrder());
 		this.even = new int[graph.getOrder()];
@@ -351,7 +352,7 @@ public class BlossomMatching extends Matching {
 
 		int numberOfNodes = this.graph.getNumberOfNodes();
 		HashSet<Integer> unvisitedNodes = new HashSet<Integer>(numberOfNodes);
-		ArrayList<ArrayList<Integer>> nodesTree = new ArrayList<ArrayList<Integer>>();
+		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
 		for (int i = 0; i < numberOfNodes; i++) {
 			unvisitedNodes.add(i + 1);
 		}
@@ -360,7 +361,7 @@ public class BlossomMatching extends Matching {
 		Iterator<Tuple<Integer, Integer>> it = matches.iterator();
 		while (it.hasNext()) {
 			Tuple<Integer, Integer> match = it.next();
-			ArrayList<Integer> nodeChilds = new ArrayList<Integer>();
+			RandomSet<Integer> nodeChilds = new RandomSet<Integer>();
 			nodeChilds.add(match.first()+1);
 			unvisitedNodes.remove(match.first()+1);
 			nodeChilds.add(match.second()+1);
@@ -370,7 +371,7 @@ public class BlossomMatching extends Matching {
 		// iterate remaining nodes
 		Iterator<Integer> rIt = unvisitedNodes.iterator();
 		while (rIt.hasNext()) {
-			ArrayList<Integer> nodeChilds = new ArrayList<Integer>();
+			RandomSet<Integer> nodeChilds = new RandomSet<Integer>();
 			nodeChilds.add(rIt.next());
 			nodesTree.add(nodeChilds);
 		}
