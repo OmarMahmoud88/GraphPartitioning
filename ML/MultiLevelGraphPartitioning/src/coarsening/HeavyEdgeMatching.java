@@ -3,10 +3,12 @@ package coarsening;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import structure.Edge;
 import structure.Graph;
-import structure.RandomSet;
+import structure.RandomAccessIntHashSet;
 
 /*
  * Heavy Edge Matching
@@ -16,22 +18,21 @@ import structure.RandomSet;
  * repeat process
  */
 
-public class HeavyEdgeMatching extends Matching{
+public class HeavyEdgeMatching extends Matching {
 
-	public ArrayList<RandomSet<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
+	public ArrayList<RandomAccessIntHashSet> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
-		ArrayList<Integer> unvisitedNodes = new ArrayList<Integer>(
-				numberOfNodes);
+		ArrayList<Integer> unvisitedNodes = new ArrayList<Integer>(numberOfNodes);
+		IntOpenHashSet loneNodes = new IntOpenHashSet();
 		HashSet<Integer> visitedNodes = new HashSet<Integer>(numberOfNodes);
-		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
+		ArrayList<RandomAccessIntHashSet> nodesTree = new ArrayList<RandomAccessIntHashSet>();
 		for (int i = 0; i < numberOfNodes; i++) {
 			unvisitedNodes.add(i + 1);
 		}
 
 		// Store Edges sorted in buckets
-		ArrayList<ArrayList<Edge>> edgesBuckets = new ArrayList<ArrayList<Edge>>(
-				numberOfNodes);
+		ArrayList<ArrayList<Edge>> edgesBuckets = new ArrayList<ArrayList<Edge>>(numberOfNodes);
 		for (int i = 0; i < numberOfNodes; i++) {
 			edgesBuckets.add(new ArrayList<Edge>());
 		}
@@ -64,7 +65,8 @@ public class HeavyEdgeMatching extends Matching{
 				heavyEdge = edgesBuckets.get(currentNodeID - 1).get(j);
 				sourceNodeID = heavyEdge.getSourceID();
 				destNodeID = heavyEdge.getDestinationID();
-				int pairWeight = graph.getNode(sourceNodeID).getNodeWeight() + graph.getNode(destNodeID).getNodeWeight();
+				int pairWeight = graph.getNode(sourceNodeID).getNodeWeight()
+						+ graph.getNode(destNodeID).getNodeWeight();
 				otherNodeID = sourceNodeID + destNodeID - currentNodeID;
 				// check if the other node is visited
 				if (visitedNodes.contains(otherNodeID) || pairWeight > maxPartitionWeight) {
@@ -74,16 +76,17 @@ public class HeavyEdgeMatching extends Matching{
 				// if not visited before
 				break;
 			}
-			RandomSet<Integer> nodeChilds;
+			RandomAccessIntHashSet nodeChilds;
 			// check if any Edge was selected
 			if (heavyEdge == null) {
-				// collapse Node by itself
-				nodeChilds = new RandomSet<Integer>();
-				nodeChilds.add(currentNodeID);
-				nodesTree.add(nodeChilds);
-				visitedNodes.add(currentNodeID);
+//				 collapse Node by itself
+				 nodeChilds = new RandomAccessIntHashSet();
+				 nodeChilds.add(currentNodeID);
+				 nodesTree.add(nodeChilds);
+				 visitedNodes.add(currentNodeID);
+//				loneNodes.add(currentNodeID);
 			} else {
-				nodeChilds = new RandomSet<Integer>();
+				nodeChilds = new RandomAccessIntHashSet();
 				nodeChilds.add(heavyEdge.getSourceID());
 				nodeChilds.add(heavyEdge.getDestinationID());
 				nodesTree.add(nodeChilds);
@@ -91,6 +94,15 @@ public class HeavyEdgeMatching extends Matching{
 				visitedNodes.add(heavyEdge.getDestinationID());
 			}
 			unvisitedNodes.remove(0);
+		}
+
+		// iterate through remaining nodes, and collapse them by themselves
+		Iterator<Integer> it = unvisitedNodes.iterator();
+		while (it.hasNext()) {
+			int singleNodeID = it.next();
+			RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
+			parentNode.add(singleNodeID);
+			nodesTree.add(parentNode);
 		}
 
 		return nodesTree;

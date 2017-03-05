@@ -1,5 +1,6 @@
 package structure;
-import java.util.HashMap;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 /*
  * 
@@ -17,7 +18,7 @@ public class Node {
 	protected int nodeID, nodeWeight, numberOfNeighbors;
 	protected Node[] neighbors;
 	protected Edge[] neighborsEdges;
-	protected HashMap<Integer, Tuple<Node, Edge>> neighborsMap;
+	protected Int2ObjectOpenHashMap<Tuple<Node, Edge>> neighborsMap;
 
 	/* First Constructor */
 	public Node(int nodeID) {
@@ -31,9 +32,8 @@ public class Node {
 	}
 
 	/* Third Constructor */
-	public Node(int nodeID, int nodeWeight, Node[] neighbors,
-			Edge[] neighborsEdges,
-			HashMap<Integer, Tuple<Node, Edge>> neighborsMap) {
+	public Node(int nodeID, int nodeWeight, Node[] neighbors, Edge[] neighborsEdges,
+			Int2ObjectOpenHashMap<Tuple<Node, Edge>> neighborsMap) {
 		this.nodeID = nodeID;
 		this.nodeWeight = nodeWeight;
 		this.neighbors = neighbors;
@@ -84,11 +84,11 @@ public class Node {
 		this.neighborsEdges = neighborsEdges;
 	}
 
-	public HashMap<Integer, Tuple<Node, Edge>> getNeighborsMap() {
+	public Int2ObjectOpenHashMap<Tuple<Node, Edge>> getNeighborsMap() {
 		return neighborsMap;
 	}
 
-	public void setNeighborsMap(HashMap<Integer, Tuple<Node, Edge>> neighborsMap) {
+	public void setNeighborsMap(Int2ObjectOpenHashMap<Tuple<Node, Edge>> neighborsMap) {
 		this.neighborsMap = neighborsMap;
 	}
 
@@ -107,12 +107,5 @@ public class Node {
 			totalEdgesWeight += this.neighborsEdges[i].getWeight();
 		}
 		return totalEdgesWeight;
-	}
-	
-	public void addEdge(Edge edge){
-		int srcNodeID = edge.getSourceID();
-		int dstNodeID = edge.getDestinationID();
-		int otherNodeID = this.nodeID == srcNodeID ? dstNodeID : srcNodeID;
-
 	}
 }

@@ -6,7 +6,7 @@ import java.util.Iterator;
 
 import structure.Edge;
 import structure.Graph;
-import structure.RandomSet;
+import structure.RandomAccessIntHashSet;
 
 /*
  * Heaviest Edge Matching
@@ -17,12 +17,12 @@ import structure.RandomSet;
 public class MedianEdgeMatching extends Matching {
 
 	@Override
-	public ArrayList<RandomSet<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
+	public ArrayList<RandomAccessIntHashSet> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		HashSet<Integer> unvisitedNodes = new HashSet<Integer>(numberOfNodes);
 		HashSet<Integer> visitedNodes = new HashSet<Integer>(numberOfNodes);
-		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
+		ArrayList<RandomAccessIntHashSet> nodesTree = new ArrayList<RandomAccessIntHashSet>();
 		for (int i = 0; i < numberOfNodes; i++) {
 			unvisitedNodes.add(i + 1);
 		}
@@ -41,7 +41,7 @@ public class MedianEdgeMatching extends Matching {
 				// do not thing
 			} else {
 				// Collapse Edge ends
-				RandomSet<Integer> parentNode = new RandomSet<Integer>();
+				RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
 				parentNode.add(sourceID);
 				parentNode.add(destinationID);
 				nodesTree.add(parentNode);
@@ -66,7 +66,7 @@ public class MedianEdgeMatching extends Matching {
 				continue;
 			} else {
 				// Collapse Edge ends
-				RandomSet<Integer> parentNode = new RandomSet<Integer>();
+				RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
 				parentNode.add(sourceID);
 				parentNode.add(destinationID);
 				nodesTree.add(parentNode);
@@ -89,7 +89,7 @@ public class MedianEdgeMatching extends Matching {
 				continue;
 			} else {
 				// Collapse Edge ends
-				RandomSet<Integer> parentNode = new RandomSet<Integer>();
+				RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
 				parentNode.add(sourceID);
 				parentNode.add(destinationID);
 				nodesTree.add(parentNode);
@@ -104,7 +104,7 @@ public class MedianEdgeMatching extends Matching {
 		// add remaining Nodes as parents
 		for (Iterator<Integer> it = unvisitedNodes.iterator(); it.hasNext();) {
 			int nodeID = it.next();
-			RandomSet<Integer> parentNode = new RandomSet<Integer>();
+			RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
 			parentNode.add(nodeID);
 			nodesTree.add(parentNode);
 			// add nodes to visited nodes

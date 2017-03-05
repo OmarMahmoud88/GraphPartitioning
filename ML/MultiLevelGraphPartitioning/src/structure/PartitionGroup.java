@@ -1,31 +1,31 @@
 package structure;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+
 public class PartitionGroup {
 
-	HashMap<Integer, Partition> partitions;
+	Int2ObjectOpenHashMap<Partition> partitions;
 	int partitionNumber;
 	int edgeCut = -1; // -1 means it is not set
 	Graph graph;
 
 	public PartitionGroup(Graph graph) {
 		this.graph = graph;
-		this.partitions = new HashMap<Integer, Partition>();
+		this.partitions = new Int2ObjectOpenHashMap<Partition>();
 		this.partitionNumber = 0;
 		this.edgeCut = -1;
 	}
 	
 	public PartitionGroup(PartitionGroup partsGroup) {
 		this.graph = partsGroup.graph;
-		this.partitions = new HashMap<Integer, Partition>();
+		this.partitions = new Int2ObjectOpenHashMap<Partition>();
 		this.edgeCut = -1;
-		ArrayList<RandomSet<Integer>> partsNodes = partsGroup.getAllPartitionsNodes();
+		ArrayList<RandomAccessIntHashSet> partsNodes = partsGroup.getAllPartitionsNodes();
 		
 		for (int i = 0; i < partsNodes.size(); i++) {
 			Partition part = new Partition(this.graph, i+1);
@@ -49,14 +49,14 @@ public class PartitionGroup {
 		return partitionNumber;
 	}
 
-	public ArrayList<RandomSet<Integer>> getAllPartitionsNodes() {
-		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
+	public ArrayList<RandomAccessIntHashSet> getAllPartitionsNodes() {
+		ArrayList<RandomAccessIntHashSet> nodesTree = new ArrayList<RandomAccessIntHashSet>();
 		Iterator<Entry<Integer, Partition>> partsIt = this.partitions.entrySet().iterator();
 		while (partsIt.hasNext()) {
 			Map.Entry<Integer, Partition> tuple = partsIt.next();
 			Partition part = tuple.getValue();
 			Iterator<Integer> it = part.getNodeIDs().iterator();
-			RandomSet<Integer> parentNode = new RandomSet<Integer>();
+			RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
 			while (it.hasNext()) {
 				int nodeID = it.next();
 				parentNode.add(nodeID);

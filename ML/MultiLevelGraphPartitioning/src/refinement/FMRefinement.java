@@ -7,12 +7,12 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import structure.FMTransfer;
-import structure.FixedSizeHashSet;
 import structure.Graph;
+import structure.IntFixedSizeHashSet;
 import structure.Node;
 import structure.Partition;
 import structure.PartitionGroup;
-import structure.RandomSet;
+import structure.RandomAccessIntHashSet;
 import structure.Tuple;
 
 public class FMRefinement {
@@ -27,7 +27,7 @@ public class FMRefinement {
 	private HashMap<Integer, Integer> nodePartitionMap;
 	private ArrayList<HashSet<Integer>> borderNodes;
 	public PartitionGroup bestParts;
-	private FixedSizeHashSet<Integer> lockedNodes;
+	private IntFixedSizeHashSet lockedNodes;
 	private int nonPositiveSwapsApplied;
 	private int maxNonPositiveSwaps;
 	private int minEdgeCut;
@@ -36,16 +36,16 @@ public class FMRefinement {
 	private HashMap<Integer, HashMap<Integer, HashSet<Integer>>> gainPartNodeMap;
 	private int maxEdgeCutGain;
 	private int minEdgeCutGain;
-	private RandomSet<Integer> graphSubset;
+	private RandomAccessIntHashSet graphSubset;
 
-	public FMRefinement(Graph graph, RandomSet<Integer> graphSubset, PartitionGroup partsGroup, int maxSwaps,
+	public FMRefinement(Graph graph, RandomAccessIntHashSet graphSubset, PartitionGroup partsGroup, int maxSwaps,
 			int maxNonPositiveSwaps, int minGainAllowed, float imbalanceRatio) {
 		// assign attributes
 		this.graph = graph;
 		this.maxTransfers = maxSwaps;
 		this.minGainAllowed = minGainAllowed;
 		this.numberOfTransfersApplied = 0;
-		this.lockedNodes = new FixedSizeHashSet<Integer>(Math.max(16, maxNonPositiveSwaps / 2));
+		this.lockedNodes = new IntFixedSizeHashSet(Math.max(16, maxNonPositiveSwaps / 2));
 		this.maxNonPositiveSwaps = maxNonPositiveSwaps;
 		this.nonPositiveSwapsApplied = 0;
 		this.graphSubset = graphSubset;

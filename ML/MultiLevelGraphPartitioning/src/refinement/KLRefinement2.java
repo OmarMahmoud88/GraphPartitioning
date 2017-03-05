@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import structure.Edge;
-import structure.FixedSizeHashSet;
 import structure.Graph;
+import structure.IntFixedSizeHashSet;
 import structure.KLPair;
 import structure.Node;
 import structure.Partition;
@@ -26,20 +26,20 @@ public class KLRefinement2 {
 	private HashMap<Integer, Integer> nodePartitionMap;
 	private ArrayList<HashSet<Integer>> borderNodes;
 	public PartitionGroup bestParts;
-	private FixedSizeHashSet<Integer> nonPositiveSwappedNodes;
+	private IntFixedSizeHashSet nonPositiveSwappedNodes;
 	private int nonPositiveSwapsApplied;
 	private int maxNonPositiveSwaps;
 	private int minEdgeCut;
 	private int curEdgeCut;
-	
-	public KLRefinement2(Graph graph, PartitionGroup partsGroup, int maxSwaps, int maxNonPositiveSwaps, int minGainAllowed,
-			float imbalanceRatio) {
+
+	public KLRefinement2(Graph graph, PartitionGroup partsGroup, int maxSwaps, int maxNonPositiveSwaps,
+			int minGainAllowed, float imbalanceRatio) {
 		// assign attributes
 		this.graph = graph;
 		this.maxSwaps = maxSwaps;
 		this.minGainAllowed = minGainAllowed;
 		this.numberOfSwapsApplied = 0;
-		this.nonPositiveSwappedNodes = new FixedSizeHashSet<Integer>(16);
+		this.nonPositiveSwappedNodes = new IntFixedSizeHashSet(16);
 		this.maxNonPositiveSwaps = maxNonPositiveSwaps;
 		this.nonPositiveSwapsApplied = 0;
 		int totalGraphWeight = this.graph.getTotalNodesWeights();
@@ -119,8 +119,7 @@ public class KLRefinement2 {
 				this.nonPositiveSwappedNodes.addItem(pairWithMaxGain.getSourceID());
 				this.nonPositiveSwappedNodes.addItem(pairWithMaxGain.getDestinationID());
 			}
-			
-			
+
 			if (pairWithMaxGain.getEdgeCutGain() > 0) {
 				// update swaps number
 				this.numberOfSwapsApplied++;
@@ -128,37 +127,36 @@ public class KLRefinement2 {
 				this.curEdgeCut -= pairWithMaxGain.getEdgeCutGain();
 			} else {
 				// update swaps number
-				this.numberOfSwapsApplied ++;
-				this.nonPositiveSwapsApplied ++;
+				this.numberOfSwapsApplied++;
+				this.nonPositiveSwapsApplied++;
 				// update gain
 				this.curEdgeCut -= pairWithMaxGain.getEdgeCutGain();
 			}
-			
+
 			if (this.curEdgeCut >= this.minEdgeCut) {
 				// if the gain is not the best
 				// store the best partition Group we are having if not set
 				if (this.bestParts == null) {
 					this.bestParts = new PartitionGroup(this.refinedPartitions);
 				}
-				
-			}
-			else{
+
+			} else {
 				// new best edge cut acquired
 				// clean last swapped nodes
 				this.nonPositiveSwappedNodes.clear();
-				
+
 				// flat number of non positive swapped
 				this.nonPositiveSwapsApplied = 0;
 				// update best edge cut
 				this.minEdgeCut = this.curEdgeCut;
-				
+
 				// refined partition will be best, erase best partitions
 				this.bestParts = null;
 			}
-			
+
 			// Swap
 			this.swap(pairWithMaxGain);
-			
+
 		}
 	}
 
@@ -279,13 +277,13 @@ public class KLRefinement2 {
 
 				while (it1.hasNext()) {
 					int node1ID = it1.next();
-					if(this.nonPositiveSwappedNodes.itemExists(node1ID))
+					if (this.nonPositiveSwappedNodes.itemExists(node1ID))
 						continue;
 					// Iterator<Integer> it2 = part2.getNodeIDs().iterator();
 					Iterator<Integer> it2 = this.borderNodes.get(part2.getPartitionID() - 1).iterator();
 					while (it2.hasNext()) {
 						int node2ID = it2.next();
-						if(this.nonPositiveSwappedNodes.itemExists(node2ID))
+						if (this.nonPositiveSwappedNodes.itemExists(node2ID))
 							continue;
 						int cutGain = this.getEdgeCutGain(node1ID, node2ID);
 						float balanceGain = this.getBalanceGain(node1ID, node2ID);
@@ -348,11 +346,11 @@ public class KLRefinement2 {
 	private float getWeightImbalance(int partitionWeight) {
 		float imbalance = 0;
 		if (partitionWeight > this.maxPartitionWeight) {
-			imbalance = ((float)partitionWeight/this.maxPartitionWeight) - 1;
-		} 
-//		else if (partitionWeight < this.minPartitionWeight) {
-//			imbalance = 1 - ((float)partitionWeight/this.minPartitionWeight);
-//		}
+			imbalance = ((float) partitionWeight / this.maxPartitionWeight) - 1;
+		}
+		// else if (partitionWeight < this.minPartitionWeight) {
+		// imbalance = 1 - ((float)partitionWeight/this.minPartitionWeight);
+		// }
 		return imbalance;
 	}
 

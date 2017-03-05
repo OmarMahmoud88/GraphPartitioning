@@ -4,25 +4,27 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 public class Graph {
 
 	protected int numberOfNodes;
-	protected long numberOfEdges;
+	protected int numberOfEdges;
 	protected int edgeIndex;
 	protected Node[] nodes;
 	protected Edge[] edges;
 	protected int[] shuffeledNodesIDs;
-	// protected RealMatrix laplacianMatrix;
-	// protected DenseMatrix64F laplacianMatrix;
 	protected double[][] laplacianMatrix;
 	protected double[] vertixWeightDiagonalMatrix;
 	protected double[] vertixDegreeDiagonalMatrix;
 
-	protected HashMap<Tuple<Integer, Integer>, Edge> nodesEdgesMap;
+	protected HashMap<IntIntTuple, Edge> nodesEdgesMap;
+	// protected Int2ObjectOpenHashMap<Int2ObjectOpenHashMap<Edge>>
+	// nodesEdgesMap;
 
 	public Graph() {
 	}
@@ -47,7 +49,7 @@ public class Graph {
 			// hdr[2] graph is directed if 11
 			this.nodes = new Node[this.numberOfNodes];
 			this.edges = new Edge[(int) this.numberOfEdges];
-			this.nodesEdgesMap = new HashMap<Tuple<Integer, Integer>, Edge>((int) this.numberOfEdges);
+			this.nodesEdgesMap = new HashMap<IntIntTuple, Edge>(this.numberOfEdges);
 			// read nodes and edges
 			int nodeID = 1;
 			int lineCounter = 0;
@@ -60,6 +62,7 @@ public class Graph {
 				lineCounter++;
 			}
 			in.close();
+			br.close();
 			// initialize shuffled nodes
 			// this array will be needed for randomization purposes
 			this.shuffeledNodesIDs = new int[this.numberOfNodes];
@@ -106,7 +109,7 @@ public class Graph {
 	protected boolean isEdgeCreated(int sourceID, int destinationID) {
 		int min = Math.min(sourceID, destinationID);
 		int max = Math.max(sourceID, destinationID);
-		return (this.nodesEdgesMap.containsKey(new Tuple<Integer, Integer>(min, max)));
+		return (this.nodesEdgesMap.containsKey(new IntIntTuple(min, max)));
 	}
 
 	/*
@@ -115,7 +118,7 @@ public class Graph {
 	public Edge getEdge(int sourceID, int destinationID) {
 		int min = Math.min(sourceID, destinationID);
 		int max = Math.max(sourceID, destinationID);
-		return (this.nodesEdgesMap.get(new Tuple<Integer, Integer>(min, max)));
+		return (this.nodesEdgesMap.get(new IntIntTuple(min, max)));
 	}
 
 	/*
@@ -126,7 +129,7 @@ public class Graph {
 		Node currentNode;
 		Node[] neighbors = new Node[nodeNeigborsIDs.length];
 		Edge[] edges = new Edge[nodeNeigborsIDs.length];
-		HashMap<Integer, Tuple<Node, Edge>> neighborsMap = new HashMap<Integer, Tuple<Node, Edge>>(
+		Int2ObjectOpenHashMap<Tuple<Node, Edge>> neighborsMap = new Int2ObjectOpenHashMap<Tuple<Node, Edge>>(
 				nodeNeigborsIDs.length);
 		// create Neighbors Nodes
 		for (int i = 0; i < nodeNeigborsIDs.length; i++) {
@@ -151,7 +154,7 @@ public class Graph {
 			// Add edge to Graph
 			// make sure each edge is added only once
 			if (nodeID <= nodeNeigborsIDs[i]) {
-				this.nodesEdgesMap.put(new Tuple<Integer, Integer>(nodeID, nodeNeigborsIDs[i]), neighborEdge);
+				this.nodesEdgesMap.put(new IntIntTuple(nodeID, nodeNeigborsIDs[i]), neighborEdge);
 				this.edges[this.edgeIndex] = neighborEdge;
 				this.edgeIndex++;
 			}
@@ -177,12 +180,13 @@ public class Graph {
 	 * This function return n random node ID using Durstenfeld's algorithm
 	 * Durstenfeld, R. (July 1964). "Algorithm 235: Random permutation
 	 */
-	public int[] getNRandomNodesIDs(int n, RandomSet<Integer> graphSubset) {
+	public int[] getNRandomNodesIDs(int n, RandomAccessIntHashSet graphSubset) {
 		int[] randoms = new int[n];
 		if (graphSubset != null) {
-			final int[] randomIDs = new Random().ints(0, graphSubset.size() - 1).distinct().limit(n).toArray();
+			int[] randomIDs = new Random().ints(0, graphSubset.size() - 1).distinct().limit(n).toArray();
+
 			for (int i = 0; i < randomIDs.length; i++) {
-				randoms[i] = graphSubset.get(i);
+				randoms[i] = graphSubset.get(randomIDs[i]);
 			}
 		} else {
 			randoms = new Random().ints(1, this.numberOfNodes).distinct().limit(n).toArray();
@@ -195,8 +199,8 @@ public class Graph {
 	 * Developed By Omar Mahmoud 27 July 2016 Returns HashSet of Nodes IDs
 	 * Developed for GGGP algorithm
 	 */
-	public HashSet<Integer> getCopyOfNodesIDs() {
-		HashSet<Integer> nodesIDsHashSet = new HashSet<Integer>(this.numberOfNodes);
+	public IntOpenHashSet getCopyOfNodesIDs() {
+		IntOpenHashSet nodesIDsHashSet = new IntOpenHashSet(this.numberOfNodes);
 		for (int i = 0; i < this.nodes.length; i++) {
 			nodesIDsHashSet.add(this.nodes[i].getNodeID());
 		}
@@ -212,12 +216,12 @@ public class Graph {
 	}
 
 	public void printGraph() {
-		for (Map.Entry<Tuple<Integer, Integer>, Edge> entry : this.nodesEdgesMap.entrySet()) {
-			Tuple<Integer, Integer> key = entry.getKey();
+		for (Map.Entry<IntIntTuple, Edge> entry : this.nodesEdgesMap.entrySet()) {
+			IntIntTuple key = entry.getKey();
 			Edge value = entry.getValue();
 
-			System.out.println(key.x + "(" + this.getNode(key.x).getNodeWeight() + ") " + key.y + "("
-					+ this.getNode(key.y).getNodeWeight() + ") " + value.getWeight());
+			System.out.println(key.first() + "(" + this.getNode(key.first()).getNodeWeight() + ") " + key.second() + "("
+					+ this.getNode(key.second()).getNodeWeight() + ") " + value.getWeight());
 		}
 	}
 
@@ -262,7 +266,7 @@ public class Graph {
 		return numberOfEdges;
 	}
 
-	public void setNumberOfEdges(long numberOfEdges) {
+	public void setNumberOfEdges(int numberOfEdges) {
 		this.numberOfEdges = numberOfEdges;
 	}
 
@@ -274,11 +278,11 @@ public class Graph {
 		this.nodes = nodes;
 	}
 
-	public HashMap<Tuple<Integer, Integer>, Edge> getNodesEdgesMap() {
+	public HashMap<IntIntTuple, Edge> getNodesEdgesMap() {
 		return nodesEdgesMap;
 	}
 
-	public void setNodesEdgesMap(HashMap<Tuple<Integer, Integer>, Edge> nodesEdgesMap) {
+	public void setNodesEdgesMap(HashMap<IntIntTuple, Edge> nodesEdgesMap) {
 		this.nodesEdgesMap = nodesEdgesMap;
 	}
 
@@ -325,8 +329,8 @@ public class Graph {
 		return vertixWeightDiagonalMatrix;
 	}
 
-	public RandomSet<Integer> getNodeChilds(int nodeID) {
-		RandomSet<Integer> childs = new RandomSet<Integer>();
+	public RandomAccessIntHashSet getNodeChilds(int nodeID) {
+		RandomAccessIntHashSet childs = new RandomAccessIntHashSet();
 		childs.add(nodeID);
 		return childs;
 	}

@@ -3,22 +3,25 @@ package structure;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class FixedSizeHashSet<T> {
-	private int queueSize;
-	private HashSet<T> queueSearcher;
-	private ArrayList<T> queueModifier;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
-	public FixedSizeHashSet(int queueSize) {
+public class IntFixedSizeHashSet{
+	private int queueSize;
+	private IntOpenHashSet queueSearcher;
+	private IntArrayList queueModifier;
+
+	public IntFixedSizeHashSet(int queueSize) {
 		// queue Size must be greater than zero
 		if (queueSize < 1) {
 			throw new IndexOutOfBoundsException("Custom Exception: Queue Size must be positive number.");
 		}
 		this.queueSize = queueSize;
-		this.queueSearcher = new HashSet<T>(queueSize);
-		this.queueModifier = new ArrayList<>(queueSize);
+		this.queueSearcher = new IntOpenHashSet(queueSize);
+		this.queueModifier = new IntArrayList(queueSize);
 	}
 
-	public boolean addItem(T item) {
+	public boolean addItem(int item) {
 		if (queueSearcher.contains(item)) {
 			return false;
 		}
@@ -27,14 +30,14 @@ public class FixedSizeHashSet<T> {
 
 		if (queueModifier.size() > this.queueSize) {
 			// remove first added item
-			T removedItem = queueModifier.get(0);
+			int removedItem = queueModifier.getInt(0);
 			queueSearcher.remove(removedItem);
-			queueModifier.remove(0);
+			queueModifier.removeInt(0);
 		}
 		return true;
 	}
 
-	public boolean itemExists(T item) {
+	public boolean itemExists(int item) {
 		return queueSearcher.contains(item);
 	}
 

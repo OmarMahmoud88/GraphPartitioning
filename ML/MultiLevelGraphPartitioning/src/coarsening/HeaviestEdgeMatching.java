@@ -6,7 +6,7 @@ import java.util.Iterator;
 
 import structure.Edge;
 import structure.Graph;
-import structure.RandomSet;
+import structure.RandomAccessIntHashSet;
 
 /*
  * Heaviest Edge Matching
@@ -17,12 +17,12 @@ import structure.RandomSet;
 public class HeaviestEdgeMatching extends Matching {
 
 	@Override
-	public ArrayList<RandomSet<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
+	public ArrayList<RandomAccessIntHashSet> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		// list all unvisited nodes
 		int numberOfNodes = graph.getNumberOfNodes();
 		HashSet<Integer> unvisitedNodes = new HashSet<Integer>(numberOfNodes);
 		HashSet<Integer> visitedNodes = new HashSet<Integer>(numberOfNodes);
-		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
+		ArrayList<RandomAccessIntHashSet> nodesTree = new ArrayList<RandomAccessIntHashSet>();
 		for (int i = 0; i < numberOfNodes; i++) {
 			unvisitedNodes.add(i + 1);
 		}
@@ -36,12 +36,13 @@ public class HeaviestEdgeMatching extends Matching {
 			int pairWeight = graph.getNode(sourceID).getNodeWeight() + graph.getNode(destinationID).getNodeWeight();
 			// check if the source or the destination is visited before
 			// check if the pair was matched will exceed max partition weight
-			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID) || pairWeight > maxPartitionWeight) {
+			if (visitedNodes.contains(sourceID) || visitedNodes.contains(destinationID)
+					|| pairWeight > maxPartitionWeight) {
 				// do not thing
 				continue;
 			} else {
 				// Collapse Edge ends
-				RandomSet<Integer> parentNode = new RandomSet<Integer>();
+				RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
 				parentNode.add(sourceID);
 				parentNode.add(destinationID);
 				nodesTree.add(parentNode);
@@ -55,15 +56,15 @@ public class HeaviestEdgeMatching extends Matching {
 
 		// add remaining Nodes as parents
 		for (Iterator<Integer> it = unvisitedNodes.iterator(); it.hasNext();) {
-		    int nodeID = it.next();
-		    RandomSet<Integer> parentNode = new RandomSet<Integer>();
+			int nodeID = it.next();
+			RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
 			parentNode.add(nodeID);
 			nodesTree.add(parentNode);
 			// add nodes to visited nodes
 			visitedNodes.add(nodeID);
-		    it.remove();
+			it.remove();
 		}
-		
+
 		return nodesTree;
 	}
 

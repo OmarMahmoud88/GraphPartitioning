@@ -6,10 +6,11 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.factory.DecompositionFactory;
 import org.ejml.interfaces.decomposition.EigenDecomposition;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import structure.Graph;
 import structure.Partition;
 import structure.PartitionGroup;
-import structure.RandomSet;
+import structure.RandomAccessIntHashSet;
 import utilities.ArrayIndexComparator;
 
 public class SpectralPartitioningGraphCutEigenVector extends Partitioning {
@@ -22,7 +23,7 @@ public class SpectralPartitioningGraphCutEigenVector extends Partitioning {
 	}
 
 	@Override
-	public PartitionGroup getPartitions(Graph gr, RandomSet<Integer> graphSubset, int numberOfPartitions, int numberOfTries) {
+	public PartitionGroup getPartitions(Graph gr, RandomAccessIntHashSet graphSubset, int numberOfPartitions, int numberOfTries) {
 		double[][] lapMatrix = gr.getLaplacianMatrix();
 		double[] vertixWeightDiagMatrix = gr.getVertixWeightsDiagonalMatrix();
 		

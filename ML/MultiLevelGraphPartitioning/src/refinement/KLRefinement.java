@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import structure.Edge;
 import structure.Graph;
 import structure.KLPair;
@@ -254,7 +255,7 @@ public class KLRefinement {
 	private void createPairsInPartition(int nodeID, int partitionID) {
 		int mainPartitionID = this.getNodePartition(nodeID);
 		Partition partition = this.refinedPartitions.get(partitionID - 1);
-		HashSet<Integer> partitionNodesIDs = partition.getNodeIDs();
+		IntOpenHashSet partitionNodesIDs = partition.getNodeIDs();
 		Iterator<Integer> it = partitionNodesIDs.iterator();
 		while (it.hasNext()) {
 			int partNodeID = it.next();
@@ -287,7 +288,7 @@ public class KLRefinement {
 	 */
 	private void zeroPairsInPartition(int nodeID, int partitionID) {
 		Partition partition = this.refinedPartitions.get(partitionID - 1);
-		HashSet<Integer> partitionNodesIDs = partition.getNodeIDs();
+		IntOpenHashSet partitionNodesIDs = partition.getNodeIDs();
 		Iterator<Integer> it = partitionNodesIDs.iterator();
 		while (it.hasNext()) {
 			int partNodeID = it.next();

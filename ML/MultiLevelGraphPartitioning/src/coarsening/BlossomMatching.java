@@ -10,10 +10,11 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import structure.Graph;
 import structure.Node;
 import structure.NodesMatching;
-import structure.RandomSet;
+import structure.RandomAccessIntHashSet;
 import structure.Tuple;
 import structure.UnionFind;
 
@@ -77,12 +78,12 @@ public class BlossomMatching extends Matching {
 		// for each 'free' vertex, start a bfs search
 		while (!queue.isEmpty()) {
 			int curNodeID = (int) queue.poll();
-			Node curNode = this.graph.getNode(curNodeID+1);
+			Node curNode = this.graph.getNode(curNodeID + 1);
 
 			Node[] curNodeNeighbors = curNode.getNeighbors();
 			for (int j = 0; j < curNodeNeighbors.length; ++j) {
 				Node neighbor = curNodeNeighbors[j];
-				int neighborID = neighbor.getNodeID()-1;
+				int neighborID = neighbor.getNodeID() - 1;
 
 				// the endpoints of the edge are both at even levels in the
 				// forest - this means it is either an augmenting path or
@@ -331,7 +332,7 @@ public class BlossomMatching extends Matching {
 	}
 
 	@Override
-	public ArrayList<RandomSet<Integer>> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
+	public ArrayList<RandomAccessIntHashSet> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
 		this.graph = graph;
 		this.matching = new NodesMatching(graph.getOrder());
 		this.even = new int[graph.getOrder()];
@@ -352,7 +353,7 @@ public class BlossomMatching extends Matching {
 
 		int numberOfNodes = this.graph.getNumberOfNodes();
 		HashSet<Integer> unvisitedNodes = new HashSet<Integer>(numberOfNodes);
-		ArrayList<RandomSet<Integer>> nodesTree = new ArrayList<RandomSet<Integer>>();
+		ArrayList<RandomAccessIntHashSet> nodesTree = new ArrayList<RandomAccessIntHashSet>();
 		for (int i = 0; i < numberOfNodes; i++) {
 			unvisitedNodes.add(i + 1);
 		}
@@ -361,17 +362,17 @@ public class BlossomMatching extends Matching {
 		Iterator<Tuple<Integer, Integer>> it = matches.iterator();
 		while (it.hasNext()) {
 			Tuple<Integer, Integer> match = it.next();
-			RandomSet<Integer> nodeChilds = new RandomSet<Integer>();
-			nodeChilds.add(match.first()+1);
-			unvisitedNodes.remove(match.first()+1);
-			nodeChilds.add(match.second()+1);
-			unvisitedNodes.remove(match.second()+1);
+			RandomAccessIntHashSet nodeChilds = new RandomAccessIntHashSet();
+			nodeChilds.add(match.first() + 1);
+			unvisitedNodes.remove(match.first() + 1);
+			nodeChilds.add(match.second() + 1);
+			unvisitedNodes.remove(match.second() + 1);
 			nodesTree.add(nodeChilds);
 		}
 		// iterate remaining nodes
 		Iterator<Integer> rIt = unvisitedNodes.iterator();
 		while (rIt.hasNext()) {
-			RandomSet<Integer> nodeChilds = new RandomSet<Integer>();
+			RandomAccessIntHashSet nodeChilds = new RandomAccessIntHashSet();
 			nodeChilds.add(rIt.next());
 			nodesTree.add(nodeChilds);
 		}

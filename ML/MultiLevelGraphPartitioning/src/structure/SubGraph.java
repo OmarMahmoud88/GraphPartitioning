@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+
 public class SubGraph extends Graph {
 
 	private HashMap<Integer, Integer> subOriginalNodesMapping;
@@ -17,7 +19,7 @@ public class SubGraph extends Graph {
 		this.parentGraph = parentGraph;
 		this.numberOfNodes = nodesSubset.size();
 		this.nodes = new Node[this.numberOfNodes];
-		this.nodesEdgesMap = new HashMap<Tuple<Integer, Integer>, Edge>();
+		this.nodesEdgesMap = new HashMap<IntIntTuple, Edge>();
 		// create original sub nodes mapping
 		subOriginalNodesMapping = new HashMap<>(this.numberOfNodes);
 		originalSubNodesMapping = new HashMap<>(this.numberOfNodes);
@@ -28,7 +30,7 @@ public class SubGraph extends Graph {
 			int nodeID = nodesIt.next();
 			subOriginalNodesMapping.put(subIndex, nodeID);
 			originalSubNodesMapping.put(nodeID, subIndex);
-			subIndex ++;
+			subIndex++;
 		}
 		// create subgraph nodes
 		for (int i = 0; i < nodes.length; i++) {
@@ -45,7 +47,7 @@ public class SubGraph extends Graph {
 			Node[] orgNeighbors = orgNode.getNeighbors();
 			ArrayList<Node> subNeighbors = new ArrayList<Node>();
 			ArrayList<Edge> subEdges = new ArrayList<Edge>();
-			HashMap<Integer, Tuple<Node, Edge>> neighborsMap = new HashMap<Integer, Tuple<Node, Edge>>();
+			Int2ObjectOpenHashMap<Tuple<Node, Edge>> neighborsMap = new Int2ObjectOpenHashMap<Tuple<Node, Edge>>();
 			for (int j = 0; j < orgNeighbors.length; j++) {
 				int orgNeighborID = orgNeighbors[j].getNodeID();
 				if (orgNodes.contains(orgNeighborID)) {
@@ -55,12 +57,12 @@ public class SubGraph extends Graph {
 					int sourceID = Math.min(subNodeID, subNeighborID);
 					int destinationID = Math.max(subNodeID, subNeighborID);
 					Edge subEdge = null;
-					if (this.nodesEdgesMap.containsKey(new Tuple<Integer, Integer>(sourceID, destinationID))) {
-						subEdge = this.nodesEdgesMap.get(new Tuple<Integer, Integer>(sourceID, destinationID));
+					if (this.nodesEdgesMap.containsKey(new IntIntTuple(sourceID, destinationID))) {
+						subEdge = this.nodesEdgesMap.get(new IntIntTuple(sourceID, destinationID));
 					} else {
 						int edgeWeight = this.parentGraph.getEdge(orgNodeID, orgNeighborID).getWeight();
 						subEdge = new Edge(sourceID, destinationID, edgeWeight);
-						this.nodesEdgesMap.put(new Tuple<Integer, Integer>(sourceID, destinationID), subEdge);
+						this.nodesEdgesMap.put(new IntIntTuple(sourceID, destinationID), subEdge);
 					}
 					subEdges.add(subEdge);
 					neighborsMap.put(subNeighborID, new Tuple<Node, Edge>(subNeighbor, subEdge));

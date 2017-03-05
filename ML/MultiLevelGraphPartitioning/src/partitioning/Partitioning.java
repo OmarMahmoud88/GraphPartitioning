@@ -2,7 +2,7 @@ package partitioning;
 
 import structure.Graph;
 import structure.PartitionGroup;
-import structure.RandomSet;
+import structure.RandomAccessIntHashSet;
 
 public abstract class Partitioning {
 	protected Graph graph;
@@ -22,7 +22,7 @@ public abstract class Partitioning {
 				1);
 	}
 
-	public abstract PartitionGroup getPartitions(Graph gr, RandomSet<Integer> graphSubset, int numberOfPartitions,
+	public abstract PartitionGroup getPartitions(Graph gr, RandomAccessIntHashSet graphSubset, int numberOfPartitions,
 			int numberOfTries);
 
 }

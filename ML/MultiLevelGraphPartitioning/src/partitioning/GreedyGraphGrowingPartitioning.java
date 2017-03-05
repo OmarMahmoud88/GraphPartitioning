@@ -1,24 +1,24 @@
 package partitioning;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntListIterator;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import structure.Edge;
 import structure.Graph;
 import structure.Node;
 import structure.Partition;
 import structure.PartitionGroup;
-import structure.RandomSet;
-import structure.Tuple;
+import structure.RandomAccessIntHashSet;
 
 public class GreedyGraphGrowingPartitioning extends Partitioning {
 
-	private RandomSet<Integer> graphSubset;
+//	private RandomSet<Integer> graphSubset;
+	private RandomAccessIntHashSet graphSubset;
 
 	// constructor
 	public GreedyGraphGrowingPartitioning(Graph graph, int numberOfPartitions, int numberOfTrials,
@@ -27,7 +27,7 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 	}
 
 	// return partition group
-	public PartitionGroup getPartitions(Graph gr, RandomSet<Integer> graphSubset, int numberOfPartitions,
+	public PartitionGroup getPartitions(Graph gr, RandomAccessIntHashSet graphSubset, int numberOfPartitions,
 			int numberOfTries) {
 		PartitionGroup bestPartGroup = null;
 		long edgeCut = 0;
@@ -44,10 +44,10 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 			partitionsRemained = numberOfPartitions;
 			// Construct Hashset for the graph
 			this.graphSubset = graphSubset;
-			HashSet<Integer> unselectedNodesIDs;
+			IntOpenHashSet unselectedNodesIDs;
 			if (graphSubset != null) {
-				unselectedNodesIDs = new HashSet<Integer>(graphSubset.size());
-				Iterator<Integer> subIt = graphSubset.iterator();
+				unselectedNodesIDs = new IntOpenHashSet(graphSubset.size());
+				IntListIterator subIt = graphSubset.iterator();
 				int totalNodesWeight = 0;
 				while (subIt.hasNext()) {
 					int subNodeID = subIt.next();
@@ -104,7 +104,7 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 	 * HashSet in O(1) instead O(n) function will be needed TODO: optimize
 	 * random function to O(1) using custom implementation to HashSet
 	 */
-	private int getRandomNode(HashSet<Integer> unselectedNodesIDs) {
+	private int getRandomNode(IntOpenHashSet unselectedNodesIDs) {
 
 		int size = unselectedNodesIDs.size();
 		int item = new Random().nextInt(size);
@@ -122,18 +122,18 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 	/*
 	 * Construct Partition using GGGP, give a seed Node
 	 */
-	private Partition constructPartition(int seedNodeID, HashSet<Integer> unselectedNodesIDs, int partitionID) {
+	private Partition constructPartition(int seedNodeID, IntOpenHashSet unselectedNodesIDs, int partitionID) {
 		int nextNodeID = seedNodeID;
 		// Create Partition List
 		Partition partition = new Partition(this.graph, partitionID);
-		HashMap<Integer, HashSet<Integer>> frontierToNeighbors = new HashMap<Integer, HashSet<Integer>>(); // frontier
+		Int2ObjectOpenHashMap<IntOpenHashSet> frontierToNeighbors = new Int2ObjectOpenHashMap<IntOpenHashSet>(); // frontier
 																											// node
 		// -> neighbors
-		HashMap<Integer, Integer> neighborsGains = new HashMap<Integer, Integer>(); // neighbor
+		Int2IntOpenHashMap neighborsGains = new Int2IntOpenHashMap(); // neighbor
 																					// node
 																					// ->
 																					// gain
-		HashMap<Integer, HashSet<Integer>> neighborToFrontiers = new HashMap<Integer, HashSet<Integer>>(); // neighbor
+		Int2ObjectOpenHashMap<IntOpenHashSet> neighborToFrontiers = new Int2ObjectOpenHashMap<IntOpenHashSet>(); // neighbor
 																											// node
 		// -> frontier
 		// nodes
@@ -167,14 +167,17 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 	 * gains of all frontier nodes' neighbors need to be updated
 	 */
 
-	private int addNodeToFrontier(int nodeID, HashMap<Integer, HashSet<Integer>> frontierToNeighbors,
-			HashMap<Integer, Integer> neighborsGains, HashMap<Integer, HashSet<Integer>> neighborToFrontiers,
-			HashSet<Integer> unselectedNodesIDs, Partition partition) {
+//	private int addNodeToFrontier(int nodeID, HashMap<Integer, HashSet<Integer>> frontierToNeighbors,
+//			HashMap<Integer, Integer> neighborsGains, HashMap<Integer, HashSet<Integer>> neighborToFrontiers,
+//			HashSet<Integer> unselectedNodesIDs, Partition partition) {
+		
+		private int addNodeToFrontier(int nodeID, Int2ObjectOpenHashMap<IntOpenHashSet> frontierToNeighbors, Int2IntOpenHashMap neighborsGains, Int2ObjectOpenHashMap<IntOpenHashSet> neighborToFrontiers,
+				IntOpenHashSet unselectedNodesIDs, Partition partition) {
 
 		// get the nodes neighbors
 		Node cur = this.graph.getNode(nodeID);
 		Node[] curNeighbors = cur.getNeighbors();
-		HashSet<Integer> unselectedNeighbors = new HashSet<Integer>();
+		IntOpenHashSet unselectedNeighbors = new IntOpenHashSet();
 
 		// filter neighbors selected in previous partitions
 		for (int i = 0; i < curNeighbors.length; i++) {
@@ -201,7 +204,7 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 				// 2- remove from neighbor To Frontier map
 				// 3- after the while loop remove from neighbors gains map, not
 				// to mess the iterator
-				HashSet<Integer> neighborFrontiers = neighborToFrontiers.get(neighborID);
+				IntOpenHashSet neighborFrontiers = neighborToFrontiers.get(neighborID);
 				Iterator<Integer> neighborFrontiersIt = neighborFrontiers.iterator();
 				while (neighborFrontiersIt.hasNext()) {
 					int frontierID = neighborFrontiersIt.next();
@@ -247,7 +250,7 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 				unselectedNeighbors.add(unselectedNeighborId);
 				neighborsGains.put(unselectedNeighborId, neighborGain);
 				if (!neighborToFrontiers.containsKey(unselectedNeighborId)) {
-					neighborToFrontiers.put(unselectedNeighborId, new HashSet<Integer>());
+					neighborToFrontiers.put(unselectedNeighborId, new IntOpenHashSet());
 				}
 				neighborToFrontiers.get(unselectedNeighborId).add(nodeID);
 				if (neighborGain < minGain) {
@@ -360,7 +363,7 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 		// and edges outside of the partition
 		for (int i = 0; i < curNeighbors.length; i++) {
 			if (this.graphSubset != null)
-				if (!this.graphSubset.contains(curNeighbors[i]))
+				if (!this.graphSubset.contains(curNeighbors[i].getNodeID()))
 					continue;
 			if (partition.containsNode(curNeighbors[i].getNodeID())) {
 				nodeInsideEdgesWeight += this.graph.getEdge(nodeID, curNeighbors[i].getNodeID()).getWeight();

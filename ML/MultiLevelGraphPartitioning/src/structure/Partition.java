@@ -1,25 +1,24 @@
 package structure;
 
-import java.util.HashSet;
 import java.util.Iterator;
+
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 public class Partition {
 	private int partitionID;
 	private Graph graph;
-	private HashSet<Integer> nodeIDs;
+	private IntOpenHashSet nodeIDs;
 	private int partitionWeight = 0;
 	private int numberOfNodes = 0;
-	private HashSet<Integer> borderNodes;
 
 	public Partition(Graph graph, int partitionID) {
 		this.graph = graph;
 		this.partitionID = partitionID;
-		this.borderNodes = new HashSet<Integer> ();
 	}
 
 	public int addNode(int nodeID) {
 		if (this.nodeIDs == null) {
-			this.nodeIDs = new HashSet<Integer>();
+			this.nodeIDs = new IntOpenHashSet();
 		}
 		// node already exist
 		if (this.nodeIDs.contains(nodeID)) {
@@ -82,7 +81,7 @@ public class Partition {
 	/*
 	 * Getter & Setters
 	 */
-	public HashSet<Integer> getNodeIDs() {
+	public IntOpenHashSet getNodeIDs() {
 		return nodeIDs;
 	}
 
