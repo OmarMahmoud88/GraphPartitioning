@@ -77,7 +77,7 @@ public class RandomAccessIntHashSet {
 	}
 
 	public IntListIterator iterator() {
-		return dta.listIterator();
+		return dta.iterator();
 	}
 
 	public void addAll(RandomAccessIntHashSet randomAccessIntHashSet) {
