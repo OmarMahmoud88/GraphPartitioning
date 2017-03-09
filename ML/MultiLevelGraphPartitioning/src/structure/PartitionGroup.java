@@ -20,19 +20,19 @@ public class PartitionGroup {
 		this.partitionNumber = 0;
 		this.edgeCut = -1;
 	}
-	
+
 	public PartitionGroup(PartitionGroup partsGroup) {
 		this.graph = partsGroup.graph;
 		this.partitions = new Int2ObjectOpenHashMap<Partition>();
 		this.edgeCut = -1;
 		ArrayList<RandomAccessIntHashSet> partsNodes = partsGroup.getAllPartitionsNodes();
-		
+
 		for (int i = 0; i < partsNodes.size(); i++) {
-			Partition part = new Partition(this.graph, i+1);
+			Partition part = new Partition(this.graph, i + 1);
 			Iterator<Integer> partsNodesIt = partsNodes.get(i).iterator();
 			while (partsNodesIt.hasNext()) {
 				part.addNode(partsNodesIt.next());
-				
+
 			}
 			this.addPartition(part);
 		}
@@ -55,13 +55,15 @@ public class PartitionGroup {
 		while (partsIt.hasNext()) {
 			Map.Entry<Integer, Partition> tuple = partsIt.next();
 			Partition part = tuple.getValue();
-			Iterator<Integer> it = part.getNodeIDs().iterator();
-			RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
-			while (it.hasNext()) {
-				int nodeID = it.next();
-				parentNode.add(nodeID);
+			if (part.getNumberOfNodes() > 0) {
+				Iterator<Integer> it = part.getNodeIDs().iterator();
+				RandomAccessIntHashSet parentNode = new RandomAccessIntHashSet();
+				while (it.hasNext()) {
+					int nodeID = it.next();
+					parentNode.add(nodeID);
+				}
+				nodesTree.add(parentNode);
 			}
-			nodesTree.add(parentNode);
 		}
 		return nodesTree;
 	}
@@ -73,14 +75,16 @@ public class PartitionGroup {
 			while (partsIt.hasNext()) {
 				Map.Entry<Integer, Partition> tuple = partsIt.next();
 				Partition part = tuple.getValue();
-				Iterator<Integer> it = part.getNodeIDs().iterator();
-				while (it.hasNext()) {
-					int nodeID = it.next();
-					Node curNode = this.graph.getNode(nodeID);
-					Node[] neighbors = curNode.getNeighbors();
-					for (int j = 0; j < neighbors.length; j++) {
-						if (!part.containsNode(neighbors[j].getNodeID())) {
-							edgeCut += this.graph.getEdge(nodeID, neighbors[j].getNodeID()).getWeight();
+				if (part.getNumberOfNodes() > 0) {
+					Iterator<Integer> it = part.getNodeIDs().iterator();
+					while (it.hasNext()) {
+						int nodeID = it.next();
+						Node curNode = this.graph.getNode(nodeID);
+						Node[] neighbors = curNode.getNeighbors();
+						for (int j = 0; j < neighbors.length; j++) {
+							if (!part.containsNode(neighbors[j].getNodeID())) {
+								edgeCut += this.graph.getEdge(nodeID, neighbors[j].getNodeID()).getWeight();
+							}
 						}
 					}
 				}
@@ -91,9 +95,9 @@ public class PartitionGroup {
 		}
 		return edgeCut;
 	}
-	
-	public float getPartitionImbalance(){
-		int partWeight = (int) Math.ceil(((float)this.graph.getTotalNodesWeights())/this.partitionNumber);
+
+	public float getPartitionImbalance() {
+		int partWeight = (int) Math.ceil(((float) this.graph.getTotalNodesWeights()) / this.partitionNumber);
 		int maxPartWeight = partWeight;
 		float imbalance = 0;
 		Iterator<Entry<Integer, Partition>> partsIt = this.partitions.entrySet().iterator();
@@ -101,12 +105,12 @@ public class PartitionGroup {
 			Map.Entry<Integer, Partition> tuple = partsIt.next();
 			Partition part = tuple.getValue();
 			int curPartitionWeight = part.getPartitionWeight();
-			if(curPartitionWeight > partWeight){
+			if (curPartitionWeight > partWeight) {
 				maxPartWeight = curPartitionWeight;
 			}
 		}
-		
-		imbalance = ((float)maxPartWeight)/partWeight;
+
+		imbalance = ((float) maxPartWeight) / partWeight;
 		return imbalance;
 	}
 
@@ -114,13 +118,13 @@ public class PartitionGroup {
 		Partition part = this.partitions.get(partID);
 		return part;
 	}
-	
-	public int getNodePartitionID(int nodeID){
+
+	public int getNodePartitionID(int nodeID) {
 		Iterator<Entry<Integer, Partition>> it = this.partitions.entrySet().iterator();
-		while(it.hasNext()){
+		while (it.hasNext()) {
 			Entry<Integer, Partition> entry = it.next();
 			Partition part = entry.getValue();
-			if(part.containsNode(nodeID)){
+			if (part.containsNode(nodeID)) {
 				return part.getPartitionID();
 			}
 		}
@@ -130,13 +134,13 @@ public class PartitionGroup {
 	public boolean containsPartition(int curPartID) {
 		return this.partitions.containsKey(curPartID);
 	}
-	
-	public String toString(){
+
+	public String toString() {
 		StringBuilder parts = new StringBuilder();
 		for (int i = 1; i <= this.graph.getNumberOfNodes(); i++) {
 			parts.append(this.getNodePartitionID(i) + "\r\n");
 		}
-		
+
 		return parts.toString();
 	}
 }

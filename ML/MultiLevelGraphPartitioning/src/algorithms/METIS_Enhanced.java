@@ -43,11 +43,12 @@ public class METIS_Enhanced {
 	private Class<Object> coarseningClass;
 	private Class<Object> partitioningClass;
 	private String graphFilePath;
+	private float coarseNodeWeightThreshold;
 
-	public METIS_Enhanced(int numberOfPartitions, Class<Object> coarseningClass,
-			Class<Object> partitioningClass, String graphName, int initPartTrials, int numberOfRuns,
-			float imbalanceRatio, int refinementIterations, int maxNegativeRefinementSteps,
-			int finalRefinementIterations, int maxFinalNegativeRefinementSteps, int maxNegativeRefinementGain)
+	public METIS_Enhanced(int numberOfPartitions, Class<Object> coarseningClass, Class<Object> partitioningClass,
+			String graphName, int initPartTrials, int numberOfRuns, float imbalanceRatio, int refinementIterations,
+			int maxNegativeRefinementSteps, int finalRefinementIterations, int maxFinalNegativeRefinementSteps,
+			int maxNegativeRefinementGain)
 			throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException,
 			SecurityException, IllegalArgumentException, InvocationTargetException, IOException {
 
@@ -125,8 +126,9 @@ public class METIS_Enhanced {
 		}
 
 		Graph originalGraph = new Graph(this.graphFilePath);
-		this.maxCoarseNodeWeight = (((float) originalGraph.getTotalNodesWeights())
-				/ (this.maxCoarsenGraphNumOfNodes));
+		this.maxCoarseNodeWeight = (((float) originalGraph.getTotalNodesWeights()) / (this.maxCoarsenGraphNumOfNodes));
+		this.coarseNodeWeightThreshold = (((float) originalGraph.getTotalNodesWeights())
+				/ (4 * this.numberOfPartitions));
 
 		ArrayList<Graph> graphs = new ArrayList<Graph>();
 		graphs.add(originalGraph);
@@ -135,7 +137,8 @@ public class METIS_Enhanced {
 		ArrayList<RandomAccessIntHashSet> originalNodesTree = null;
 		int lastGraphNodesNumber = originalGraph.getNumberOfNodes() + 1;
 		int coarseningIterations = 0;
-		while (intermediate.getNumberOfNodes() > maxCoarsenGraphNumOfNodes) {
+		while (intermediate.getNumberOfNodes() > maxCoarsenGraphNumOfNodes
+				&& this.maxCoarseNodeWeight < this.coarseNodeWeightThreshold) {
 			if (lastGraphNodesNumber == intermediate.getNumberOfNodes()) {
 				this.maxCoarseNodeWeight *= 1.1;
 			}
@@ -162,6 +165,7 @@ public class METIS_Enhanced {
 			}
 			Graph oldIntermediate = intermediate;
 			intermediate = new CoarseGraph(oldIntermediate, nodesTree);
+
 		}
 
 		CoarseGraph cGraph = (CoarseGraph) intermediate;

@@ -32,10 +32,6 @@ public class CoarseGraph extends Graph {
 		this.edgesList = new ArrayList<Edge>();
 		// create reversedMap
 		this.createReversedMap();
-		// create nodes
-		// for (int i = 1; i <= this.numberOfNodes; i++) {
-		// this.nodes[i-1] = new CoarseNode(i, this.getNodeWeight(i));
-		// }
 		// create edges
 		// loop parent graph edges
 		Edge[] parentGraphEdges = this.parentGraph.getEdges();
@@ -57,7 +53,6 @@ public class CoarseGraph extends Graph {
 			} else {
 				Edge parentEdge = this.nodesEdgesMap.get(edgeTuple);
 				parentEdge.setWeight(parentEdge.getWeight() + childEdgeWeight);
-				// this.nodesEdgesMap.put(edgeTuple, parentEdge);
 			}
 		}
 		// create nodes
@@ -78,6 +73,7 @@ public class CoarseGraph extends Graph {
 		this.numberOfEdges = this.edges.length;
 		// Store Edges and sort it by weight
 		Arrays.sort(this.edges);
+
 	}
 
 	private void storeNode(int curNodeID) {
@@ -110,14 +106,16 @@ public class CoarseGraph extends Graph {
 				neighborEdge = getEdge(curNodeID, curNeighborsIDs[j]);
 			} else {
 				neighborEdgeWeight = this.calculateEdgeWeight(curNodeID, curNeighborsIDs[j]);
-				neighborEdge = new CoarseEdge(curNodeID, curNeighborsIDs[j], neighborEdgeWeight);
+				neighborEdge = new CoarseEdge(Math.min(curNodeID, curNeighborsIDs[j]),
+						Math.max(curNodeID, curNeighborsIDs[j]), neighborEdgeWeight);
 			}
 			neighborsEdges[j] = neighborEdge;
 			neighborsMap.put(curNeighborsIDs[j], new Tuple<Node, Edge>(neighbors[j], neighborsEdges[j]));
 			// Add edge to Graph
 			// make sure each edge is added only once
 			if (curNodeID < curNeighborsIDs[j]) {
-				this.nodesEdgesMap.put(new IntIntTuple(curNodeID, curNeighborsIDs[j]), neighborEdge);
+				this.nodesEdgesMap.put(new IntIntTuple(Math.min(curNodeID, curNeighborsIDs[j]),
+						Math.max(curNodeID, curNeighborsIDs[j])), neighborEdge);
 				this.edgesList.add(neighborEdge);
 			}
 
@@ -126,7 +124,7 @@ public class CoarseGraph extends Graph {
 		if (isNodeCreated(curNodeID)) {
 			currentNode = this.nodes[curNodeID - 1];
 			currentNode.setNeighbors(neighbors);
-			currentNode.setNeighborsEdges(edges);
+			currentNode.setNeighborsEdges(neighborsEdges);
 			currentNode.setNeighborsMap(neighborsMap);
 		} else {
 			currentNode = new CoarseNode(curNodeID, curNodeWeight, neighbors, neighborsEdges, neighborsMap);
@@ -153,7 +151,7 @@ public class CoarseGraph extends Graph {
 				int neighborID = childNodeNeighbors[j].getNodeID();
 				curNeighbor = this.reversedMap.get(neighborID);
 
-				if(curNeighbor == 0){
+				if (curNeighbor == 0) {
 					System.out.println("GOTCHA");
 				}
 				if (curNeighbor != curNodeID) {

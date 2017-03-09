@@ -40,6 +40,7 @@ public class METIS {
 	private Class<Object> coarseningClass;
 	private Class<Object> partitioningClass;
 	private String graphFilePath;
+	private float coarseNodeWeightThreshold;
 
 	public METIS(int numberOfPartitions, Class<Object> coarseningClass, Class<Object> partitioningClass,
 			String graphName, int initPartTrials, int numberOfRuns, float imbalanceRatio, int refinementIterations,
@@ -123,6 +124,7 @@ public class METIS {
 
 		Graph originalGraph = new Graph(this.graphFilePath);
 		this.maxCoarseNodeWeight = (((float) originalGraph.getTotalNodesWeights()) / (this.maxCoarsenGraphNumOfNodes));
+		this.coarseNodeWeightThreshold = (((float) originalGraph.getTotalNodesWeights()) / (4*this.numberOfPartitions));
 
 		ArrayList<Graph> graphs = new ArrayList<Graph>();
 		graphs.add(originalGraph);
@@ -131,15 +133,35 @@ public class METIS {
 		int lastGraphNodesNumber = originalGraph.getNumberOfNodes() + 1;
 		int coarseningIterations = 0;
 
-		while (intermediate.getNumberOfNodes() > this.maxCoarsenGraphNumOfNodes) {
+		while (intermediate.getNumberOfNodes() > this.maxCoarsenGraphNumOfNodes
+				&& this.maxCoarseNodeWeight < this.coarseNodeWeightThreshold) {
+			CoarseGraph cG = null;
 			if (lastGraphNodesNumber == intermediate.getNumberOfNodes()) {
 				this.maxCoarseNodeWeight *= 1.1;
+				// System.out.println("this.maxCoarseNodeWeight = " +
+				// this.maxCoarseNodeWeight);
+				graphs.remove(graphs.size() - 1);
+				intermediate = graphs.get(graphs.size() - 1);
+				cG = new CoarseGraph(intermediate,
+						match.coarse(intermediate, this.maxCoarsenGraphNumOfNodes, this.maxCoarseNodeWeight));
+				graphs.add(cG);
+				intermediate = graphs.get(graphs.size() - 1);
+			} else {
+				coarseningIterations++;
+				lastGraphNodesNumber = intermediate.getNumberOfNodes();
+				cG = new CoarseGraph(intermediate,
+						match.coarse(intermediate, this.maxCoarsenGraphNumOfNodes, this.maxCoarseNodeWeight));
+				graphs.add(cG);
+				intermediate = graphs.get(graphs.size() - 1);
 			}
-			coarseningIterations++;
-			lastGraphNodesNumber = intermediate.getNumberOfNodes();
-			graphs.add(new CoarseGraph(intermediate,
-					match.coarse(intermediate, this.maxCoarsenGraphNumOfNodes, this.maxCoarseNodeWeight)));
-			intermediate = graphs.get(graphs.size() - 1);
+			// Edge[] cGEdges = cG.getEdges();
+			// int totalEdgesWeights = 0;
+			// for (int i = 0; i < cGEdges.length; i++) {
+			// totalEdgesWeights += cGEdges[i].getWeight();
+			// }
+			// System.out.println("Number Of Nodes = " + cG.getNumberOfNodes());
+			// System.out.println("Number Of Edges = " + cG.getNumberOfEdges());
+			// System.out.println();
 		}
 
 		lastGraphNodesNumber = intermediate.getNumberOfNodes();

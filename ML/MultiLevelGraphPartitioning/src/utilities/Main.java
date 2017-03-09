@@ -49,7 +49,7 @@ public class Main {
 				// loop all graphs
 				tabs += "    ";
 				for (int i = 0; i < graphNames.length; i++) {
-					if (excludedGraphs.contains(graphNames[i]))
+					if (excludedGraphs.contains(graphNames[i]) || !graphNames[i].equals("fe_body"))
 						continue;
 					System.out.println(tabs + "Graph = " + graphNames[i]);
 					// loop all coarsening schemes
@@ -67,23 +67,19 @@ public class Main {
 								continue;
 							System.out.println(tabs + "Partitioning Class = " + partitioningClasses.get(k));
 
-							// System.out.println(tabs + " METIS Enhanced");
-							// expME = new METIS_Enhanced(numberOfPartitions,
-							// coarseningClasses.get(j),
-							// partitioningClasses.get(k), graphNames[i],
-							// numberOfTrials, numberOfRuns,
-							// imbalanceRatiosList[y], refinementIterations,
-							// maxNegativeRefinementSteps,
-							// finalRefinementIterations,
-							// maxFinalNegativeRefinementSteps,
-							// maxNegativeRefinementGain);
+							System.out.println(tabs + " METIS Enhanced");
+							expME = new METIS_Enhanced(numberOfPartitions, coarseningClasses.get(j),
+									partitioningClasses.get(k), graphNames[i], numberOfTrials, numberOfRuns,
+									imbalanceRatiosList[y], refinementIterations, maxNegativeRefinementSteps,
+									finalRefinementIterations, maxFinalNegativeRefinementSteps,
+									maxNegativeRefinementGain);
 
-							System.out.println();
-							System.out.println(tabs + "    METIS");
-							expM = new METIS(numberOfPartitions, coarseningClasses.get(j), partitioningClasses.get(k),
-									graphNames[i], numberOfTrials, numberOfRuns, imbalanceRatiosList[y],
-									refinementIterations, maxNegativeRefinementSteps, finalRefinementIterations,
-									maxFinalNegativeRefinementSteps, maxNegativeRefinementGain);
+//							System.out.println();
+//							System.out.println(tabs + "    METIS");
+//							expM = new METIS(numberOfPartitions, coarseningClasses.get(j), partitioningClasses.get(k),
+//									graphNames[i], numberOfTrials, numberOfRuns, imbalanceRatiosList[y],
+//									refinementIterations, maxNegativeRefinementSteps, finalRefinementIterations,
+//									maxFinalNegativeRefinementSteps, maxNegativeRefinementGain);
 						}
 						tabs = tabs.substring(4);
 					}

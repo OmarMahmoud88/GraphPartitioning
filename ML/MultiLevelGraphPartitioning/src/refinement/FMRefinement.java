@@ -75,11 +75,13 @@ public class FMRefinement {
 		for (int i = 0; i < this.refinedPartitions.getPartitionNumber(); i++) {
 			int partID = i + 1;
 			Partition partition = this.refinedPartitions.getPartition(partID);
-			int partitionID = partition.getPartitionID();
-			Iterator<Integer> partIt = partition.getNodeIDs().iterator();
-			while (partIt.hasNext()) {
-				int nodeID = partIt.next();
-				this.nodePartitionMap.put(nodeID, partitionID);
+			if (partition.getNumberOfNodes() > 0) {
+				int partitionID = partition.getPartitionID();
+				Iterator<Integer> partIt = partition.getNodeIDs().iterator();
+				while (partIt.hasNext()) {
+					int nodeID = partIt.next();
+					this.nodePartitionMap.put(nodeID, partitionID);
+				}
 			}
 		}
 		// construct border nodes list
@@ -90,27 +92,29 @@ public class FMRefinement {
 		for (int i = 0; i < this.refinedPartitions.getPartitionNumber(); i++) {
 			int partID = i + 1;
 			Partition partition = this.refinedPartitions.getPartition(partID);
-			Iterator<Integer> partIt = partition.getNodeIDs().iterator();
-			while (partIt.hasNext()) {
-				int nodeID = partIt.next();
-				boolean borderNode = false;
-				Node cur = this.graph.getNode(nodeID);
-				Node[] neighbors = cur.getNeighbors();
-				for (int j = 0; j < neighbors.length; j++) {
-					int neighborID = neighbors[j].getNodeID();
-					if (graphSubset != null) {
-						if (!graphSubset.contains(neighborID)) {
-							continue;
+			if (partition.getNumberOfNodes() > 0) {
+				Iterator<Integer> partIt = partition.getNodeIDs().iterator();
+				while (partIt.hasNext()) {
+					int nodeID = partIt.next();
+					boolean borderNode = false;
+					Node cur = this.graph.getNode(nodeID);
+					Node[] neighbors = cur.getNeighbors();
+					for (int j = 0; j < neighbors.length; j++) {
+						int neighborID = neighbors[j].getNodeID();
+						if (graphSubset != null) {
+							if (!graphSubset.contains(neighborID)) {
+								continue;
+							}
+						}
+						if (!partition.containsNode(neighborID)) {
+							int neighborPartitionID = partsGroup.getNodePartitionID(neighborID);
+							this.borderNodes.get(neighborPartitionID - 1).add(neighbors[j].getNodeID());
+							borderNode = true;
 						}
 					}
-					if (!partition.containsNode(neighborID)) {
-						int neighborPartitionID = partsGroup.getNodePartitionID(neighborID);
-						this.borderNodes.get(neighborPartitionID - 1).add(neighbors[j].getNodeID());
-						borderNode = true;
+					if (borderNode == true) {
+						this.borderNodes.get(partID - 1).add(nodeID);
 					}
-				}
-				if (borderNode == true) {
-					this.borderNodes.get(partID - 1).add(nodeID);
 				}
 			}
 		}
