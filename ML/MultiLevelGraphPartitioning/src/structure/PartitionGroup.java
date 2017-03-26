@@ -143,4 +143,16 @@ public class PartitionGroup {
 
 		return parts.toString();
 	}
+
+	public ArrayList<Partition> getAllPartitions() {
+		ArrayList<Partition> partsList = new ArrayList<Partition>();
+		for (int i = 1; i <= this.partitionNumber; i++) {
+			partsList.add(this.getPartition(i));
+		}
+		return partsList;
+	}
+
+	public Graph getGraph() {
+		return this.graph;
+	}
 }

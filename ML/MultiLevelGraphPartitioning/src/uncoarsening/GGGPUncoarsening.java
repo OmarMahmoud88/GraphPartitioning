@@ -30,13 +30,16 @@ public class GGGPUncoarsening extends Uncoarsening {
 					orgPartitionID++;
 				}
 			} else {
-//				Graph subGraph = new SubGraph(originalGraph, nodesTree.get(i));
+				// Graph subGraph = new SubGraph(originalGraph,
+				// nodesTree.get(i));
 				int numOfTrials = (int) Math.max(1, Math.min(5, Math.log(nodesTree.get(i).size())));
-				Partitioning partAlg = new GreedyGraphGrowingPartitioning(originalGraph, 2, numOfTrials, (float) 0.1);
-				PartitionGroup partsGroup = partAlg.getPartitions(originalGraph, nodesTree.get(i), 2, numOfTrials);
-				FMRefinement fm = new FMRefinement(originalGraph, nodesTree.get(i), partsGroup, 10, 10, -1000, (float) 0.1);
+				Partitioning partAlg = new GreedyGraphGrowingPartitioning(originalGraph, nodesTree.get(i), 2,
+						numOfTrials, (float) 0.1);
+				PartitionGroup partsGroup = partAlg.getPartitions();
+				FMRefinement fm = new FMRefinement(originalGraph, nodesTree.get(i), partsGroup, 10, 10, -1000,
+						(float) 0.1);
 				PartitionGroup refinedParts = fm.getRefinedPartitions();
-				
+
 				Partition part1 = refinedParts.getPartition(1);
 				part1.setPartitionID(orgPartitionID);
 				parts.addPartition(part1);

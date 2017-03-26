@@ -124,7 +124,8 @@ public class METIS {
 
 		Graph originalGraph = new Graph(this.graphFilePath);
 		this.maxCoarseNodeWeight = (((float) originalGraph.getTotalNodesWeights()) / (this.maxCoarsenGraphNumOfNodes));
-		this.coarseNodeWeightThreshold = (((float) originalGraph.getTotalNodesWeights()) / (4*this.numberOfPartitions));
+		this.coarseNodeWeightThreshold = (((float) originalGraph.getTotalNodesWeights())
+				/ (4 * this.numberOfPartitions));
 
 		ArrayList<Graph> graphs = new ArrayList<Graph>();
 		graphs.add(originalGraph);
@@ -196,11 +197,11 @@ public class METIS {
 			Instant start = Instant.now();
 			runsOutput.append("Run # " + run_ID + "\r\n");
 
-			Constructor<Object> partConstructor = this.partitioningClass.getConstructor(Graph.class, Integer.TYPE,
-					Integer.TYPE, Float.TYPE);
-			Partitioning gGGP = (Partitioning) partConstructor.newInstance(cGraph, this.numberOfPartitions,
+			Constructor<Object> partConstructor = this.partitioningClass.getConstructor(Graph.class,
+					RandomAccessIntHashSet.class, Integer.TYPE, Integer.TYPE, Float.TYPE);
+			Partitioning gGGP = (Partitioning) partConstructor.newInstance(cGraph, null, this.numberOfPartitions,
 					this.initPartTrials, this.imbalanceRatio);
-			PartitionGroup partsGroup = gGGP.getPartitions(cGraph, null, this.numberOfPartitions, this.initPartTrials);
+			PartitionGroup partsGroup = gGGP.getPartitions();
 
 			FMRefinement fm = new FMRefinement(cGraph, null, partsGroup, this.refinementIterations,
 					this.maxNegativeRefinementSteps, this.maxNegativeRefinementGain, this.imbalanceRatio);
@@ -358,60 +359,6 @@ public class METIS {
 		bwr.flush();
 		bwr.close();
 	}
-
-	// private PartitionGroup uncoarsenPartitions(CoarseGraph curGraph, Graph
-	// previousGraph, PartitionGroup refinedParts) {
-	// Node[] prevGraphNodes = previousGraph.getNodes();
-	// PartitionGroup uncoarsenParts = new PartitionGroup(previousGraph);
-	// for (int i = 0; i < prevGraphNodes.length; i++) {
-	// Node prevGraphNode = prevGraphNodes[i];
-	// // get original graph nodes
-	// RandomAccessIntHashSet prevGraphNodeChilds =
-	// previousGraph.getNodeChilds(prevGraphNode.getNodeID());
-	// // get the parent node in curGraph
-	// int childNodeID = prevGraphNodeChilds.iterator().next();
-	//
-	// int curGraphNodeID = curGraph.getParentNodeIDOf(childNodeID);
-	// if (curGraphNodeID == 0) {
-	// System.out.println("current graph nodes number = " +
-	// curGraph.getNumberOfNodes());
-	// System.out.println("previous graph nodes number = " +
-	// previousGraph.getNumberOfNodes());
-	// ArrayList<RandomAccessIntHashSet> curNodesTree = curGraph.getNodesTree();
-	// Iterator<RandomAccessIntHashSet> outIt = curNodesTree.iterator();
-	// int index = 0;
-	// while (outIt.hasNext()) {
-	// index ++;
-	// RandomAccessIntHashSet innerSet = outIt.next();
-	// Iterator innerIt = innerSet.iterator();
-	// System.out.print(index + " ==> (");
-	// while (innerIt.hasNext()) {
-	// int x = (int) innerIt.next();
-	// System.out.print(x + ", ");
-	//
-	// }
-	// System.out.println(")");
-	//
-	// }
-	// System.out.println();
-	// }
-	// // get parentNode Partition
-	// int curPartID = refinedParts.getNodePartitionID(curGraphNodeID);
-	// Partition part = null;
-	// // check if the current partition exists
-	// if (uncoarsenParts.containsPartition(curPartID)) {
-	// part = uncoarsenParts.getPartition(curPartID);
-	// } else {
-	// part = new Partition(previousGraph, curPartID);
-	// uncoarsenParts.addPartition(part);
-	// }
-	// // add node to part
-	// part.addNode(prevGraphNode.getNodeID());
-	//
-	// }
-	//
-	// return uncoarsenParts;
-	// }
 
 	private static PartitionGroup uncoarsenPartitions(CoarseGraph curGraph, Graph previousGraph,
 			PartitionGroup refinedParts) {

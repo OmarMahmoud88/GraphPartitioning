@@ -326,6 +326,9 @@ public class FMRefinement {
 				// remove entry from part-node-gain map
 				this.partNodeGainMap.remove(partNode);
 			} else {
+//				if (this.partNodeGainMap.containsKey(partNode)) {
+//					System.out.println("Error Found");
+//				}
 				int prevEdgeCutGain = this.partNodeGainMap.get(partNode);
 				// remove previous gain from maps
 				this.gainPartNodeMap.get(prevEdgeCutGain).get(partID).remove(nodeID);

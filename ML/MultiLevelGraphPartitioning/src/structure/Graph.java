@@ -21,6 +21,7 @@ public class Graph {
 	protected double[][] laplacianMatrix;
 	protected double[] vertixWeightDiagonalMatrix;
 	protected double[] vertixDegreeDiagonalMatrix;
+	protected String graphName;
 
 	protected HashMap<IntIntTuple, Edge> nodesEdgesMap;
 	// protected Int2ObjectOpenHashMap<Int2ObjectOpenHashMap<Edge>>
@@ -181,6 +182,7 @@ public class Graph {
 	 * Durstenfeld, R. (July 1964). "Algorithm 235: Random permutation
 	 */
 	public int[] getNRandomNodesIDs(int n, RandomAccessIntHashSet graphSubset) {
+		n = Math.min(n, this.numberOfNodes - 1);
 		int[] randoms = new int[n];
 		if (graphSubset != null) {
 			int[] randomIDs = new Random().ints(0, graphSubset.size() - 1).distinct().limit(n).toArray();
@@ -294,6 +296,14 @@ public class Graph {
 		this.edges = edges;
 	}
 
+	public String getGraphName() {
+		return graphName;
+	}
+
+	public void setGraphName(String graphName) {
+		this.graphName = graphName;
+	}
+
 	public double[][] getLaplacianMatrix() {
 
 		if (this.laplacianMatrix == null) {
@@ -316,7 +326,7 @@ public class Graph {
 		return laplacianMatrix;
 	}
 
-	public double[] getVertixWeightsDiagonalMatrix() {
+	public double[] getVertexWeightsDiagonalMatrix() {
 
 		if (this.vertixWeightDiagonalMatrix == null) {
 			this.vertixWeightDiagonalMatrix = new double[this.numberOfNodes];

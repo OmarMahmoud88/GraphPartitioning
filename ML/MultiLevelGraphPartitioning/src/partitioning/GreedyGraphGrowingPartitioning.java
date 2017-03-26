@@ -17,30 +17,26 @@ import structure.RandomAccessIntHashSet;
 
 public class GreedyGraphGrowingPartitioning extends Partitioning {
 
-	private RandomAccessIntHashSet graphSubset;
-
 	// constructor
-	public GreedyGraphGrowingPartitioning(Graph graph, int numberOfPartitions, int numberOfTrials,
-			float imbalanceRatio) {
-		super(graph, numberOfPartitions, numberOfTrials, imbalanceRatio);
+	public GreedyGraphGrowingPartitioning(Graph graph, RandomAccessIntHashSet graphSubset, int numberOfPartitions,
+			int numberOfTrials, float imbalanceRatio) {
+		super(graph, graphSubset, numberOfPartitions, numberOfTrials, imbalanceRatio);
 	}
 
 	// return partition group
-	public PartitionGroup getPartitions(Graph gr, RandomAccessIntHashSet graphSubset, int numberOfPartitions,
-			int numberOfTries) {
+	public PartitionGroup getPartitions() {
 		PartitionGroup bestPartGroup = null;
 		long edgeCut = 0;
 		long minEdgeCut = Long.MAX_VALUE;
 		int partitionsRemained = numberOfPartitions;
 		// Get seeded Nodes for each Trial to avoid
 		// Duplicate seeds
-		int[] randomSeeds = gr.getNRandomNodesIDs(numberOfTries, graphSubset);
+		int[] randomSeeds = this.graph.getNRandomNodesIDs(this.numberOfTrials, graphSubset);
 		for (int i = 0; i < randomSeeds.length; i++) {
 			PartitionGroup partGroup = new PartitionGroup(this.graph);
 			int partitionID = 1;
-			partitionsRemained = numberOfPartitions;
-			// Construct Hashset for the graph
-			this.graphSubset = graphSubset;
+			partitionsRemained = this.numberOfPartitions;
+			// Construct HashSet for the graph
 			IntOpenHashSet unselectedNodesIDs;
 			if (graphSubset != null) {
 				unselectedNodesIDs = new IntOpenHashSet(graphSubset.size());
@@ -66,7 +62,7 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 			partitionsRemained--;
 
 			// Construct Partitions
-			while (partitionsRemained > 1) {
+			while (partitionsRemained > 1 && unselectedNodesIDs.size() > 0) {
 				// get seed for the new partition
 				partitionID++;
 				int seedNodeID = this.getRandomNode(unselectedNodesIDs);
@@ -90,7 +86,6 @@ public class GreedyGraphGrowingPartitioning extends Partitioning {
 				minEdgeCut = edgeCut;
 				bestPartGroup = partGroup;
 			}
-			numberOfTries--;
 		}
 
 		return bestPartGroup;

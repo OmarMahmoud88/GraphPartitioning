@@ -201,9 +201,9 @@ public class METIS_Enhanced {
 
 			Constructor<Object> partConstructor = this.partitioningClass.getConstructor(Graph.class, Integer.TYPE,
 					Integer.TYPE, Float.TYPE);
-			Partitioning gGGP = (Partitioning) partConstructor.newInstance(cGraph, this.numberOfPartitions,
+			Partitioning gGGP = (Partitioning) partConstructor.newInstance(cGraph, null, this.numberOfPartitions,
 					this.initPartTrials, this.imbalanceRatio);
-			PartitionGroup partsGroup = gGGP.getPartitions(cGraph, null, this.numberOfPartitions, this.initPartTrials);
+			PartitionGroup partsGroup = gGGP.getPartitions();
 			FMRefinement fm = new FMRefinement(cGraph, null, partsGroup, this.refinementIterations,
 					this.maxNegativeRefinementSteps, this.maxNegativeRefinementGain, this.imbalanceRatio);
 			PartitionGroup refinedParts2;

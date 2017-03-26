@@ -12,8 +12,8 @@ public class SpectralNormalizedCutEigenVectorMatching extends Matching {
 
 	@Override
 	public ArrayList<RandomAccessIntHashSet> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
-		Partitioning parting = new SpectralPartitioningNormalizedCutEigenVector(graph, outputGraphNumOfNodes, 20, (float) 0.1);
-		PartitionGroup partsGroup = parting.getPartitions(graph, null, outputGraphNumOfNodes, 20);
+		Partitioning parting = new SpectralPartitioningNormalizedCutEigenVector(graph, null, outputGraphNumOfNodes, 20, (float) 0.1);
+		PartitionGroup partsGroup = parting.getPartitions();
 		return partsGroup.getAllPartitionsNodes();
 	}
 

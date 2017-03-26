@@ -16,17 +16,16 @@ public class SpectralPartitioningNormalizedCutFiedlerVector extends Partitioning
 
 	private int eigIndex = 1;
 
-	public SpectralPartitioningNormalizedCutFiedlerVector(Graph graph, int numberOfPartitions, int numberOfTrials,
-			float imbalanceRatio) {
-		super(graph, numberOfPartitions, numberOfTrials, imbalanceRatio);
+	public SpectralPartitioningNormalizedCutFiedlerVector(Graph graph, RandomAccessIntHashSet graphSubset,
+			int numberOfPartitions, int numberOfTrials, float imbalanceRatio) {
+		super(graph, graphSubset, numberOfPartitions, numberOfTrials, imbalanceRatio);
 	}
 
 	@Override
-	public PartitionGroup getPartitions(Graph gr, RandomAccessIntHashSet graphSubset, int numberOfPartitions,
-			int numberOfTries) {
-		double[][] lapMatrix = gr.getLaplacianMatrix();
-		double[] vertixWeightDiagMatrix = gr.getVertixWeightsDiagonalMatrix();
-		double[] vertixDegreeDiagMatrix = gr.getVertixDegreeDiagonalMatrix();
+	public PartitionGroup getPartitions() {
+		double[][] lapMatrix = this.graph.getLaplacianMatrix();
+		double[] vertixWeightDiagMatrix = this.graph.getVertexWeightsDiagonalMatrix();
+		double[] vertixDegreeDiagMatrix = this.graph.getVertixDegreeDiagonalMatrix();
 
 		// multiply the inverse of vertixWeightDiagMatrix with lapMatrix
 		double[][] resultMatrix = new double[lapMatrix.length][lapMatrix.length];
@@ -78,12 +77,12 @@ public class SpectralPartitioningNormalizedCutFiedlerVector extends Partitioning
 		// System.out.println("eigenValue = " + eigValue);
 		// System.out.println(eigVector);
 
-		PartitionGroup partsGroup = new PartitionGroup(gr);
+		PartitionGroup partsGroup = new PartitionGroup(this.graph);
 		int partitionID = 1;
 		int vectorIndex = 0;
-		int PartitionWeightThreshold = gr.getTotalNodesWeights() / numberOfPartitions;
+		int PartitionWeightThreshold = this.graph.getTotalNodesWeights() / numberOfPartitions;
 		while (partsGroup.getPartitionNumber() < numberOfPartitions) {
-			Partition part = new Partition(gr, partitionID);
+			Partition part = new Partition(this.graph, partitionID);
 			while (part.getPartitionWeight() < PartitionWeightThreshold && vectorIndex < eigenVectorIndicies.length) {
 				int nodeID = eigenVectorIndicies[vectorIndex] + 1;
 				part.addNode(nodeID);

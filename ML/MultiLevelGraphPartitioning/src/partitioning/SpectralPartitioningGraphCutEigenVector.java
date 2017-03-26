@@ -6,7 +6,6 @@ import org.ejml.data.DenseMatrix64F;
 import org.ejml.factory.DecompositionFactory;
 import org.ejml.interfaces.decomposition.EigenDecomposition;
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import structure.Graph;
 import structure.Partition;
 import structure.PartitionGroup;
@@ -17,33 +16,39 @@ public class SpectralPartitioningGraphCutEigenVector extends Partitioning {
 
 	private int eigIndex = 1;
 
-	public SpectralPartitioningGraphCutEigenVector(Graph graph, int numberOfPartitions, int numberOfTrials, float imbalanceRatio) {
-		super(graph, numberOfPartitions, numberOfTrials, imbalanceRatio);
-		this.eigIndex = numberOfPartitions-1;
+	public SpectralPartitioningGraphCutEigenVector(Graph graph, RandomAccessIntHashSet graphSubset,
+			int numberOfPartitions, int numberOfTrials, float imbalanceRatio) {
+		super(graph, graphSubset, numberOfPartitions, numberOfTrials, imbalanceRatio);
+		this.eigIndex = numberOfPartitions - 1;
 	}
 
 	@Override
-	public PartitionGroup getPartitions(Graph gr, RandomAccessIntHashSet graphSubset, int numberOfPartitions, int numberOfTries) {
-		double[][] lapMatrix = gr.getLaplacianMatrix();
-		double[] vertixWeightDiagMatrix = gr.getVertixWeightsDiagonalMatrix();
-		
+	public PartitionGroup getPartitions() {
+		double[][] lapMatrix = this.graph.getLaplacianMatrix();
+		double[] vertixWeightDiagMatrix = this.graph.getVertexWeightsDiagonalMatrix();
+
 		// multiply the inverse of vertixWeightDiagMatrix with lapMatrix
 		double[][] resultMatrix = new double[lapMatrix.length][lapMatrix.length];
 		// observe that vertixWeightDiagMatrix is diagonal matrix
 		// its inverse is 1/aii
 		for (int i = 0; i < resultMatrix.length; i++) {
-			double diagElement1 = ((double)1)/Math.sqrt(vertixWeightDiagMatrix[i]); // the matrix is not symmetric anymore
-			//double diagElement = 1; 
+			double diagElement1 = ((double) 1) / Math.sqrt(vertixWeightDiagMatrix[i]); // the
+																						// matrix
+																						// is
+																						// not
+																						// symmetric
+																						// anymore
+			// double diagElement = 1;
 			for (int j = 0; j < resultMatrix[i].length; j++) {
-				double diagElement2 = ((double)1)/Math.sqrt(vertixWeightDiagMatrix[j]);
-				resultMatrix[i][j] = diagElement1 * lapMatrix[i][j]*diagElement2;
+				double diagElement2 = ((double) 1) / Math.sqrt(vertixWeightDiagMatrix[j]);
+				resultMatrix[i][j] = diagElement1 * lapMatrix[i][j] * diagElement2;
 			}
 		}
 		DenseMatrix64F rMat = new DenseMatrix64F(resultMatrix);
-		
+
 		EigenDecomposition<DenseMatrix64F> eig = DecompositionFactory.eig(resultMatrix.length, true);
 		eig.decompose(rMat);
-		
+
 		double[] eigValues = new double[eig.getNumberOfEigenvalues()];
 		for (int i = 0; i < eigValues.length; i++) {
 			eigValues[i] = eig.getEigenvalue(i).getReal();
@@ -51,8 +56,9 @@ public class SpectralPartitioningGraphCutEigenVector extends Partitioning {
 		ArrayIndexComparator eigenValuesComparator = new ArrayIndexComparator(eigValues);
 		Integer[] eigenValuesindices = eigenValuesComparator.createIndexArray();
 		Arrays.sort(eigenValuesindices, eigenValuesComparator);
-		
-		//Complex64F eigValue = eig.getEigenvalue(eigenValuesindices[this.eigIndex]);
+
+		// Complex64F eigValue =
+		// eig.getEigenvalue(eigenValuesindices[this.eigIndex]);
 		DenseMatrix64F eigVector = null;
 		double[] eigenVector = null;
 		try {
@@ -66,30 +72,30 @@ public class SpectralPartitioningGraphCutEigenVector extends Partitioning {
 			System.out.println("eigVector = " + eigVector);
 			System.out.println("eigenVector = " + eigenVector);
 		}
-		
+
 		ArrayIndexComparator eigenVectorComparator = new ArrayIndexComparator(eigenVector);
 		Integer[] eigenVectorIndicies = eigenVectorComparator.createIndexArray();
 		Arrays.sort(eigenVectorIndicies, eigenVectorComparator);
-//		System.out.println("eigenValue = " + eigValue);
-//		System.out.println(eigVector);
-		
-		PartitionGroup partsGroup = new PartitionGroup(gr);
+		// System.out.println("eigenValue = " + eigValue);
+		// System.out.println(eigVector);
+
+		PartitionGroup partsGroup = new PartitionGroup(this.graph);
 		int partitionID = 1;
 		int vectorIndex = 0;
-		int PartitionWeightThreshold = gr.getTotalNodesWeights()/numberOfPartitions;
+		int PartitionWeightThreshold = this.graph.getTotalNodesWeights() / numberOfPartitions;
 		while (partsGroup.getPartitionNumber() < numberOfPartitions) {
-			Partition part = new Partition(gr, partitionID);
-			while(part.getPartitionWeight() < PartitionWeightThreshold && vectorIndex<eigenVectorIndicies.length){
-				int nodeID = eigenVectorIndicies[vectorIndex]+1;
+			Partition part = new Partition(this.graph, partitionID);
+			while (part.getPartitionWeight() < PartitionWeightThreshold && vectorIndex < eigenVectorIndicies.length) {
+				int nodeID = eigenVectorIndicies[vectorIndex] + 1;
 				part.addNode(nodeID);
 				vectorIndex++;
 			}
 			partsGroup.addPartition(part);
-			partitionID ++;
+			partitionID++;
 		}
 		// add remaining nodes
-		while(vectorIndex < eigenVectorIndicies.length){
-			int nodeID = eigenVectorIndicies[vectorIndex]+1;
+		while (vectorIndex < eigenVectorIndicies.length) {
+			int nodeID = eigenVectorIndicies[vectorIndex] + 1;
 			partsGroup.getPartition(numberOfPartitions).addNode(nodeID);
 			vectorIndex++;
 		}

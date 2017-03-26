@@ -9,9 +9,12 @@ public abstract class Partitioning {
 	protected int numberOfPartitions, numberOfTrials;
 	protected float imbalanceRatio;
 	protected int maxPartitionWeight, minPartitionWeight;
+	protected RandomAccessIntHashSet graphSubset;
 
-	public Partitioning(Graph graph, int numberOfPartitions, int numberOfTrials, float imbalanceRatio) {
+	public Partitioning(Graph graph, RandomAccessIntHashSet graphSubset, int numberOfPartitions, int numberOfTrials,
+			float imbalanceRatio) {
 		this.graph = graph;
+		this.graphSubset = graphSubset;
 		this.numberOfPartitions = numberOfPartitions;
 		this.numberOfTrials = numberOfTrials;
 		this.imbalanceRatio = imbalanceRatio;
@@ -22,7 +25,6 @@ public abstract class Partitioning {
 				1);
 	}
 
-	public abstract PartitionGroup getPartitions(Graph gr, RandomAccessIntHashSet graphSubset, int numberOfPartitions,
-			int numberOfTries);
+	public abstract PartitionGroup getPartitions();
 
 }

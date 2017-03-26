@@ -4,7 +4,9 @@ import java.util.Random;
 
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntListIterator;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
 public class RandomAccessIntHashSet {
 
@@ -18,6 +20,15 @@ public class RandomAccessIntHashSet {
 	public RandomAccessIntHashSet(IntArrayList items) {
 		idx.defaultReturnValue(-1);
 		for (int item : items) {
+			idx.put(item, dta.size());
+			dta.add(item);
+		}
+	}
+
+	public RandomAccessIntHashSet(IntOpenHashSet nodeIDs) {
+		IntIterator iterator = nodeIDs.iterator();
+		while (iterator.hasNext()) {
+			int item = iterator.nextInt();
 			idx.put(item, dta.size());
 			dta.add(item);
 		}

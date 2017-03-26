@@ -12,8 +12,8 @@ public class SpectralGraphCutFiedlerVectorMatching extends Matching {
 
 	@Override
 	public ArrayList<RandomAccessIntHashSet> coarse(Graph graph, int outputGraphNumOfNodes, float maxPartitionWeight) {
-		Partitioning parting = new SpectralPartitioningGraphCutFiedlerVector(graph, outputGraphNumOfNodes, 20, (float) 0.1);
-		PartitionGroup partsGroup = parting.getPartitions(graph, null, outputGraphNumOfNodes, 20);
+		Partitioning parting = new SpectralPartitioningGraphCutFiedlerVector(graph, null, outputGraphNumOfNodes, 20, (float) 0.1);
+		PartitionGroup partsGroup = parting.getPartitions();
 		return partsGroup.getAllPartitionsNodes();
 	}
 
