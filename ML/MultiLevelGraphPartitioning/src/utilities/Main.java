@@ -14,8 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import algorithms.METIS_Origin;
-import algorithms.METIS_RecursiveBisection;
+import algorithms.METIS_RB_RR;
 import statistics.ExperimentRun;
 import statistics.ExperimentRunGroup;
 import structure.Graph;
@@ -34,14 +33,14 @@ public class Main {
 	final private static HashSet<String> excludedGraphs = new HashSet<String>(
 			// Arrays.asList("auto", "m14b", "fe_body", "fe_pwt", "bcsstk31",
 			// "bcsstk29"));
-			Arrays.asList());
+			Arrays.asList("fe_body"));
 	final private static int numberOfTrials = 5;
 	final private static int numberOfRuns = 10;
 	final private static float[] imbalanceRatiosList = new float[] { (float) 0.001999, (float) 0.010999,
 			(float) 0.030999, (float) 0.050999 };
-	final private static int refinementIterations = 10;
+	final private static int refinementIterations = 1;
 	final private static int maxNegativeRefinementSteps = 10;
-	final private static int finalRefinementIterations = 10;
+	final private static int finalRefinementIterations = 1;
 	final private static int maxFinalNegativeRefinementSteps = 10;
 	final private static int maxNegativeRefinementGain = -10000;
 
@@ -123,7 +122,27 @@ public class Main {
 							// maxFinalNegativeRefinementSteps,
 							// maxNegativeRefinementGain);
 
-							METIS_RecursiveBisection expMO = null;
+							// METIS_RecursiveBisection expMO = null;
+							// ExperimentRun run = null;
+							// ExperimentRunGroup runGroup = new
+							// ExperimentRunGroup(numberOfPartitions,
+							// imbalanceRatiosList[y], graphNames[i],
+							// coarseningClasses.get(j).getName(),
+							// partitioningClasses.get(k).getName(),
+							// numberOfTrials, refinementIterations,
+							// maxNegativeRefinementSteps,
+							// finalRefinementIterations,
+							// maxFinalNegativeRefinementSteps,
+							// maxNegativeRefinementGain);
+							// Path storingFolder =
+							// createStoreFolder(graphNames[i],
+							// numberOfPartitions,
+							// imbalanceRatiosList[y], coarseningClasses.get(j),
+							// partitioningClasses.get(k),
+							// (Class<Object>)
+							// Class.forName("algorithms.METIS_RecursiveBisection"));
+
+							METIS_RB_RR expMO = null;
 							ExperimentRun run = null;
 							ExperimentRunGroup runGroup = new ExperimentRunGroup(numberOfPartitions,
 									imbalanceRatiosList[y], graphNames[i], coarseningClasses.get(j).getName(),
@@ -132,7 +151,7 @@ public class Main {
 									maxFinalNegativeRefinementSteps, maxNegativeRefinementGain);
 							Path storingFolder = createStoreFolder(graphNames[i], numberOfPartitions,
 									imbalanceRatiosList[y], coarseningClasses.get(j), partitioningClasses.get(k),
-									(Class<Object>) Class.forName("algorithms.METIS_RecursiveBisection"));
+									(Class<Object>) Class.forName("algorithms.METIS_RB_RR"));
 							if (storingFolder == null) {
 								runGroup = null;
 								storingFolder = null;
@@ -142,11 +161,10 @@ public class Main {
 							for (int l = 1; l <= numberOfRuns; l++) {
 								logBuilder.append(tabs + "Run # " + l + "\r\n");
 								System.out.println(tabs + "Run # " + l);
-								expMO = new METIS_RecursiveBisection(graph, numberOfPartitions,
-										coarseningClasses.get(j), partitioningClasses.get(k), numberOfTrials,
-										imbalanceRatiosList[y], refinementIterations, maxNegativeRefinementSteps,
-										finalRefinementIterations, maxFinalNegativeRefinementSteps,
-										maxNegativeRefinementGain);
+								expMO = new METIS_RB_RR(graph, numberOfPartitions, coarseningClasses.get(j),
+										partitioningClasses.get(k), numberOfTrials, imbalanceRatiosList[y],
+										refinementIterations, maxNegativeRefinementSteps, finalRefinementIterations,
+										maxFinalNegativeRefinementSteps, maxNegativeRefinementGain);
 
 								run = expMO.partitionGraph();
 								run.setRunID(l);
@@ -168,12 +186,9 @@ public class Main {
 							}
 							writeToFile(storingFolder, "Summary.txt", runGroup.getRunGroupSummary());
 							// Log
-							if (logBuilder.length() > 1024) {
-								bwr.write(logBuilder.toString());
-								bwr.flush();
-								System.out.println("Flush");
-								logBuilder = new StringBuilder(1024);
-							}
+							bwr.write(logBuilder.toString());
+							bwr.flush();
+							logBuilder = new StringBuilder();
 
 							tabs = tabs.substring(4);
 							// deallocate Objects
